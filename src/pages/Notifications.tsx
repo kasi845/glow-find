@@ -1,6 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, Bell, Package } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
+import { FloatingIcons } from '@/components/FloatingIcons';
+import { PageTransition } from '@/components/PageTransition';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/contexts/AppContext';
 import { toast } from '@/hooks/use-toast';
@@ -26,8 +28,10 @@ const Notifications = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+    <PageTransition>
+      <div className="min-h-screen bg-background">
+        <FloatingIcons />
+        <Navbar />
       
       <main className="pt-24 pb-12 px-6">
         <div className="container mx-auto max-w-3xl">
@@ -115,7 +119,8 @@ const Notifications = () => {
           </div>
         </div>
       </main>
-    </div>
+      </div>
+    </PageTransition>
   );
 };
 

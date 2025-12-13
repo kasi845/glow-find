@@ -2,6 +2,8 @@ import { motion } from 'framer-motion';
 import { Search, Package, TrendingUp, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
+import { FloatingIcons } from '@/components/FloatingIcons';
+import { PageTransition } from '@/components/PageTransition';
 import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
 
@@ -18,8 +20,10 @@ const Home = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+    <PageTransition>
+      <div className="min-h-screen bg-background">
+        <FloatingIcons />
+        <Navbar />
       
       <main className="pt-24 pb-12 px-6">
         <div className="container mx-auto max-w-6xl">
@@ -123,7 +127,8 @@ const Home = () => {
           </motion.div>
         </div>
       </main>
-    </div>
+      </div>
+    </PageTransition>
   );
 };
 
