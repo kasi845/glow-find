@@ -2,6 +2,8 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { FileText, MapPin, Calendar, Phone, Upload, Tag } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
+import { FloatingIcons } from '@/components/FloatingIcons';
+import { PageTransition } from '@/components/PageTransition';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/contexts/AppContext';
@@ -54,8 +56,10 @@ const Report = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+    <PageTransition>
+      <div className="min-h-screen bg-background">
+        <FloatingIcons />
+        <Navbar />
       
       <main className="pt-24 pb-12 px-6">
         <div className="container mx-auto max-w-2xl">
@@ -198,7 +202,8 @@ const Report = () => {
           </motion.form>
         </div>
       </main>
-    </div>
+      </div>
+    </PageTransition>
   );
 };
 

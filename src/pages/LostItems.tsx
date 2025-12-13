@@ -2,6 +2,8 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { Search } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
+import { FloatingIcons } from '@/components/FloatingIcons';
+import { PageTransition } from '@/components/PageTransition';
 import { ItemCard } from '@/components/ItemCard';
 import { ClaimModal } from '@/components/ClaimModal';
 import { Input } from '@/components/ui/input';
@@ -19,8 +21,10 @@ const LostItems = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+    <PageTransition>
+      <div className="min-h-screen bg-background">
+        <FloatingIcons />
+        <Navbar />
       
       <main className="pt-24 pb-12 px-6">
         <div className="container mx-auto max-w-6xl">
@@ -78,7 +82,8 @@ const LostItems = () => {
         isOpen={!!selectedItem}
         onClose={() => setSelectedItem(null)}
       />
-    </div>
+      </div>
+    </PageTransition>
   );
 };
 

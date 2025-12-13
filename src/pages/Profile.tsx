@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { User, Mail, Edit, LogOut, Package, Search, Check, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
+import { FloatingIcons } from '@/components/FloatingIcons';
+import { PageTransition } from '@/components/PageTransition';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/contexts/AppContext';
@@ -49,8 +51,10 @@ const Profile = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+    <PageTransition>
+      <div className="min-h-screen bg-background">
+        <FloatingIcons />
+        <Navbar />
       
       <main className="pt-24 pb-12 px-6">
         <div className="container mx-auto max-w-2xl">
@@ -188,7 +192,8 @@ const Profile = () => {
           </motion.div>
         </div>
       </main>
-    </div>
+      </div>
+    </PageTransition>
   );
 };
 

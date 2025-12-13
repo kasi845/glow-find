@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { MapPin, Calendar, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Item } from '@/contexts/AppContext';
@@ -10,15 +10,37 @@ interface ItemCardProps {
 }
 
 export const ItemCard: React.FC<ItemCardProps> = ({ item, onClaim, index }) => {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const rotateX = useSpring(useTransform(y, [-100, 100], [8, -8]), { stiffness: 300, damping: 30 });
+  const rotateY = useSpring(useTransform(x, [-100, 100], [-8, 8]), { stiffness: 300, damping: 30 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    x.set(e.clientX - centerX);
+    y.set(e.clientY - centerY);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
   return (
     <motion.div
-      className="glass-card overflow-hidden group"
+      className="glass-card overflow-hidden group cursor-pointer"
+      style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
       whileHover={{ y: -5, scale: 1.02 }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
     >
-      <div className="relative h-48 overflow-hidden">
+      <div className="relative h-48 overflow-hidden" style={{ transform: 'translateZ(20px)' }}>
         <img 
           src={item.image} 
           alt={item.title}
@@ -36,7 +58,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onClaim, index }) => {
         </div>
       </div>
 
-      <div className="p-5">
+      <div className="p-5" style={{ transform: 'translateZ(30px)' }}>
         <h3 className="font-display font-semibold text-lg text-foreground mb-2 line-clamp-1">
           {item.title}
         </h3>
@@ -62,7 +84,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onClaim, index }) => {
         <Button 
           onClick={onClaim}
           variant="gradient"
-          className="w-full"
+          className="w-full shimmer-btn"
         >
           Claim Item
         </Button>

@@ -1,40 +1,42 @@
 import { motion } from 'framer-motion';
-import { Wallet, Key, Smartphone, Briefcase, Watch, Headphones, Camera, Glasses } from 'lucide-react';
+import { Wallet, Key, Smartphone, Briefcase, Watch, Headphones, Camera, Glasses, Umbrella, CreditCard } from 'lucide-react';
 
 const icons = [
-  { Icon: Wallet, delay: 0, x: '10%', y: '20%' },
-  { Icon: Key, delay: 0.5, x: '80%', y: '15%' },
-  { Icon: Smartphone, delay: 1, x: '15%', y: '70%' },
-  { Icon: Briefcase, delay: 1.5, x: '85%', y: '65%' },
-  { Icon: Watch, delay: 2, x: '50%', y: '10%' },
-  { Icon: Headphones, delay: 2.5, x: '25%', y: '45%' },
-  { Icon: Camera, delay: 3, x: '70%', y: '40%' },
-  { Icon: Glasses, delay: 3.5, x: '90%', y: '85%' },
+  { Icon: Wallet, delay: 0, x: '5%', y: '15%', size: 32 },
+  { Icon: Key, delay: 0.8, x: '85%', y: '12%', size: 28 },
+  { Icon: Smartphone, delay: 1.5, x: '12%', y: '75%', size: 36 },
+  { Icon: Briefcase, delay: 2.2, x: '88%', y: '68%', size: 30 },
+  { Icon: Watch, delay: 3, x: '45%', y: '8%', size: 26 },
+  { Icon: Headphones, delay: 3.8, x: '22%', y: '42%', size: 34 },
+  { Icon: Camera, delay: 4.5, x: '75%', y: '38%', size: 32 },
+  { Icon: Glasses, delay: 5.2, x: '92%', y: '88%', size: 28 },
+  { Icon: Umbrella, delay: 6, x: '8%', y: '55%', size: 30 },
+  { Icon: CreditCard, delay: 6.8, x: '65%', y: '82%', size: 26 },
+  { Icon: Key, delay: 7.5, x: '35%', y: '28%', size: 24 },
+  { Icon: Wallet, delay: 8.2, x: '58%', y: '58%', size: 28 },
 ];
 
 export const FloatingIcons = () => {
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden">
-      {icons.map(({ Icon, delay, x, y }, index) => (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+      {icons.map(({ Icon, delay, x, y, size }, index) => (
         <motion.div
           key={index}
-          className="absolute text-primary/20"
-          style={{ left: x, top: y }}
-          initial={{ opacity: 0, scale: 0 }}
+          className="absolute text-primary"
+          style={{ left: x, top: y, opacity: 0.1 }}
           animate={{ 
-            opacity: [0.1, 0.3, 0.1],
-            scale: [1, 1.2, 1],
-            y: [0, -30, 0],
-            rotate: [0, 10, -10, 0]
+            y: [0, -25, 0, 15, 0],
+            x: [0, 10, 0, -10, 0],
+            rotate: [0, 8, 0, -8, 0],
           }}
           transition={{
-            duration: 6,
+            duration: 12 + (index * 0.5),
             delay,
             repeat: Infinity,
             ease: 'easeInOut'
           }}
         >
-          <Icon size={40} />
+          <Icon size={size} strokeWidth={1.5} />
         </motion.div>
       ))}
     </div>
