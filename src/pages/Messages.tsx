@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Send, MessageCircle } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
@@ -35,23 +35,10 @@ const Messages = () => {
       <main className="pt-24 pb-12 px-6">
         <div className="container mx-auto max-w-5xl">
           <motion.div
-            className="mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
-              <span className="gradient-text">Messages</span>
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              Chat with people about claimed items
-            </p>
-          </motion.div>
-
-          <motion.div
             className="glass-card overflow-hidden"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.1 }}
           >
             <div className="flex h-[600px]">
               {/* Chat List */}
@@ -89,66 +76,75 @@ const Messages = () => {
 
               {/* Chat Area */}
               <div className="flex-1 flex flex-col">
-                {currentChat ? (
-                  <>
-                    {/* Header */}
-                    <div className="p-4 border-b border-border flex items-center gap-3">
-                      <img 
-                        src={currentChat.participantAvatar} 
-                        alt={currentChat.participantName}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                      <h3 className="font-display font-semibold">{currentChat.participantName}</h3>
-                    </div>
+                <AnimatePresence mode="wait">
+                  {currentChat ? (
+                    <motion.div
+                      key={selectedChat}
+                      className="flex-1 flex flex-col"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {/* Header */}
+                      <div className="p-4 border-b border-border flex items-center gap-3">
+                        <img 
+                          src={currentChat.participantAvatar} 
+                          alt={currentChat.participantName}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                        <h3 className="font-display font-semibold">{currentChat.participantName}</h3>
+                      </div>
 
-                    {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                      {chatMessages.map((msg, i) => {
-                        const isOwn = msg.senderId === user?.id;
-                        return (
-                          <motion.div
-                            key={msg.id}
-                            className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: i * 0.05 }}
-                          >
-                            <div className={`max-w-[70%] px-4 py-3 rounded-2xl ${
-                              isOwn 
-                                ? 'gradient-bg text-primary-foreground rounded-br-md' 
-                                : 'bg-muted text-foreground rounded-bl-md'
-                            }`}>
-                              <p>{msg.content}</p>
-                              <p className={`text-xs mt-1 ${isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </p>
-                            </div>
-                          </motion.div>
-                        );
-                      })}
-                    </div>
+                      {/* Messages */}
+                      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                        {chatMessages.map((msg, i) => {
+                          const isOwn = msg.senderId === user?.id;
+                          return (
+                            <motion.div
+                              key={msg.id}
+                              className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: i * 0.05 }}
+                            >
+                              <div className={`max-w-[70%] px-4 py-3 rounded-2xl ${
+                                isOwn 
+                                  ? 'gradient-bg text-primary-foreground rounded-br-md' 
+                                  : 'bg-muted text-foreground rounded-bl-md'
+                              }`}>
+                                <p>{msg.content}</p>
+                                <p className={`text-xs mt-1 ${isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                                  {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
 
-                    {/* Input */}
-                    <form onSubmit={handleSend} className="p-4 border-t border-border flex gap-3">
-                      <Input
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="Type a message..."
-                        className="flex-1"
-                      />
-                      <Button type="submit" variant="gradient" size="icon">
-                        <Send size={20} />
-                      </Button>
-                    </form>
-                  </>
-                ) : (
-                  <div className="flex-1 flex items-center justify-center">
-                    <div className="text-center">
-                      <MessageCircle className="mx-auto mb-4 text-muted-foreground" size={48} />
-                      <p className="text-muted-foreground">Select a chat to start messaging</p>
+                      {/* Input */}
+                      <form onSubmit={handleSend} className="p-4 border-t border-border flex gap-3">
+                        <Input
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          placeholder="Type a message..."
+                          className="flex-1"
+                        />
+                        <Button type="submit" variant="gradient" size="icon">
+                          <Send size={20} />
+                        </Button>
+                      </form>
+                    </motion.div>
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center">
+                      <div className="text-center">
+                        <MessageCircle className="mx-auto mb-4 text-muted-foreground" size={48} />
+                        <p className="text-muted-foreground">Select a chat to start messaging</p>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </motion.div>

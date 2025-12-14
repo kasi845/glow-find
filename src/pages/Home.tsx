@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Search, Package, TrendingUp, Clock } from 'lucide-react';
+import { Search, Package } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { FloatingIcons } from '@/components/FloatingIcons';
@@ -15,8 +15,6 @@ const Home = () => {
   const stats = [
     { icon: Search, label: 'Lost Items', value: lostItems.length, color: 'from-orange-500 to-red-500' },
     { icon: Package, label: 'Found Items', value: foundItems.length, color: 'from-green-500 to-emerald-500' },
-    { icon: TrendingUp, label: 'Success Rate', value: '78%', color: 'from-blue-500 to-cyan-500' },
-    { icon: Clock, label: 'Avg Recovery', value: '2.3 days', color: 'from-purple-500 to-pink-500' },
   ];
 
   return (
@@ -42,7 +40,7 @@ const Home = () => {
           </motion.div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+          <div className="grid grid-cols-2 gap-4 mb-12">
             {stats.map((stat, i) => (
               <motion.div
                 key={stat.label}
@@ -61,31 +59,18 @@ const Home = () => {
             ))}
           </div>
 
-          {/* Quick Actions */}
+          {/* Report Button */}
           <motion.div
-            className="glass-card p-8 mb-12"
+            className="mb-12"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.3 }}
           >
-            <h2 className="font-display text-2xl font-bold mb-6">Quick Actions</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Link to="/report">
-                <Button variant="gradient" size="xl" className="w-full">
-                  📝 Report an Item
-                </Button>
-              </Link>
-              <Link to="/lost">
-                <Button variant="glass" size="xl" className="w-full">
-                  🔍 Browse Lost Items
-                </Button>
-              </Link>
-              <Link to="/found">
-                <Button variant="glass" size="xl" className="w-full">
-                  📦 Browse Found Items
-                </Button>
-              </Link>
-            </div>
+            <Link to="/report">
+              <Button variant="gradient" size="xl" className="w-full md:w-auto">
+                📝 Report an Item
+              </Button>
+            </Link>
           </motion.div>
 
           {/* Recent Activity */}
@@ -93,7 +78,7 @@ const Home = () => {
             className="glass-card p-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.4 }}
           >
             <h2 className="font-display text-2xl font-bold mb-6">Recent Items</h2>
             <div className="space-y-4">
@@ -103,7 +88,7 @@ const Home = () => {
                   className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.6 + i * 0.1 }}
+                  transition={{ delay: 0.5 + i * 0.1 }}
                 >
                   <img 
                     src={item.image} 
