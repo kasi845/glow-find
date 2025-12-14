@@ -44,19 +44,24 @@ export const Navbar = () => {
                 <motion.div
                   className={`relative p-2 sm:px-3 sm:py-2 rounded-xl flex items-center gap-2 transition-all duration-300 ${
                     isActive 
-                      ? 'bg-primary/20 text-primary' 
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                      ? 'text-primary' 
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.05, backgroundColor: 'hsl(var(--muted) / 0.5)' }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <Icon size={20} />
                   <span className="hidden lg:block text-sm font-medium">{label}</span>
+                  
+                  {/* Active indicator - glowing bottom line */}
                   {isActive && (
                     <motion.div
-                      className="absolute inset-0 border-2 border-primary/50 rounded-xl"
-                      layoutId="activeNav"
+                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-1 rounded-full gradient-bg"
+                      layoutId="activeNavIndicator"
                       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                      style={{
+                        boxShadow: '0 0 10px hsl(var(--primary) / 0.6)',
+                      }}
                     />
                   )}
                 </motion.div>
@@ -66,8 +71,8 @@ export const Navbar = () => {
           
           <motion.button
             onClick={logout}
-            className="p-2 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-300 ml-2"
-            whileHover={{ scale: 1.05 }}
+            className="p-2 rounded-xl text-muted-foreground hover:text-destructive transition-all duration-300 ml-2"
+            whileHover={{ scale: 1.05, backgroundColor: 'hsl(var(--destructive) / 0.1)' }}
             whileTap={{ scale: 0.95 }}
           >
             <LogOut size={20} />

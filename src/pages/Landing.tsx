@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FloatingIcons } from '@/components/FloatingIcons';
+import { FloatingOrbs } from '@/components/FloatingOrbs';
+import { AnimatedTagline } from '@/components/AnimatedTagline';
 
 const Landing = () => {
   return (
@@ -14,6 +16,7 @@ const Landing = () => {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(280_70%_50%/0.1),transparent_70%)]" />
       </div>
 
+      <FloatingOrbs />
       <FloatingIcons />
 
       {/* Header */}
@@ -37,12 +40,12 @@ const Landing = () => {
 
         <div className="flex gap-3">
           <Link to="/login">
-            <Button variant="glass" size="lg">
+            <Button variant="glass" size="lg" className="hover:scale-105 transition-transform">
               Login
             </Button>
           </Link>
           <Link to="/signup">
-            <Button variant="hero" size="lg">
+            <Button variant="hero" size="lg" className="hover:scale-105 transition-transform">
               Sign Up
             </Button>
           </Link>
@@ -50,23 +53,14 @@ const Landing = () => {
       </motion.header>
 
       {/* Hero Section */}
-      <main className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-120px)] px-6 text-center">
-        <motion.h1
-          className="font-display text-5xl md:text-7xl lg:text-8xl font-bold mb-6 max-w-4xl leading-tight"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <span className="text-foreground">Lose it.</span>{' '}
-          <span className="gradient-text">Find it.</span>{' '}
-          <span className="text-foreground">Claim it.</span>
-        </motion.h1>
+      <main className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-180px)] px-6 text-center">
+        <AnimatedTagline />
 
         <motion.p
-          className="text-xl md:text-2xl text-muted-foreground mb-4 max-w-2xl"
+          className="text-xl md:text-2xl text-muted-foreground mb-4"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
+          transition={{ duration: 0.6, delay: 1.2 }}
         >
           🔍
         </motion.p>
@@ -75,20 +69,39 @@ const Landing = () => {
           className="flex flex-col sm:flex-row gap-4 mt-8"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
+          transition={{ duration: 0.6, delay: 1.4 }}
         >
           <Link to="/login">
-            <Button variant="glass" size="xl">
-              Login
-            </Button>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
+              <Button variant="glass" size="xl" className="min-w-[140px]">
+                Login
+              </Button>
+            </motion.div>
           </Link>
           <Link to="/signup">
-            <Button variant="hero" size="xl">
-              Sign Up
-            </Button>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
+              <Button variant="hero" size="xl" className="min-w-[140px]">
+                Sign Up
+              </Button>
+            </motion.div>
           </Link>
         </motion.div>
       </main>
+
+      {/* Footer */}
+      <motion.footer
+        className="absolute bottom-0 left-0 right-0 z-10 p-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 1.6 }}
+      >
+        <div className="glass-card py-3 px-6 mx-auto w-fit">
+          <p className="text-sm text-muted-foreground text-center">
+            Made with <span className="text-destructive">❤️</span> by{' '}
+            <span className="gradient-text font-medium">SRKR CSE-A Boys</span> | Hackathon 2025
+          </p>
+        </div>
+      </motion.footer>
     </div>
   );
 };
