@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
 import { AppProvider, useApp } from "./contexts/AppContext";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -35,20 +36,24 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const AppRoutes = () => {
+  const location = useLocation();
+  
   return (
-    <Routes>
-      <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
-      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-      <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
-      <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-      <Route path="/lost" element={<ProtectedRoute><LostItems /></ProtectedRoute>} />
-      <Route path="/found" element={<ProtectedRoute><FoundItems /></ProtectedRoute>} />
-      <Route path="/report" element={<ProtectedRoute><Report /></ProtectedRoute>} />
-      <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-      <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
+        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+        <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+        <Route path="/lost" element={<ProtectedRoute><LostItems /></ProtectedRoute>} />
+        <Route path="/found" element={<ProtectedRoute><FoundItems /></ProtectedRoute>} />
+        <Route path="/report" element={<ProtectedRoute><Report /></ProtectedRoute>} />
+        <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+        <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </AnimatePresence>
   );
 };
 
