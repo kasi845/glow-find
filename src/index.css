@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
@@ -68,11 +68,12 @@
 
   body {
     @apply bg-background text-foreground font-sans;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Outfit', 'Inter', sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Outfit', 'Space Grotesk', sans-serif;
+    font-weight: 600;
   }
 }
 
@@ -221,5 +222,10 @@
   /* Text shadow for gradient text */
   .gradient-text {
     text-shadow: 0 0 30px hsl(25 95% 60% / 0.3);
+  }
+
+  /* Font display class */
+  .font-display {
+    font-family: 'Outfit', 'Space Grotesk', sans-serif;
   }
 }
