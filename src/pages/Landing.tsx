@@ -3,20 +3,16 @@ import { Link } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FloatingIcons } from '@/components/FloatingIcons';
-import { FloatingOrbs } from '@/components/FloatingOrbs';
-import { AnimatedTagline } from '@/components/AnimatedTagline';
+import { AuroraBackground } from '@/components/AuroraBackground';
+import { CinematicHero } from '@/components/CinematicHero';
+import { AnimatedFooter } from '@/components/AnimatedFooter';
+import { LumiChatbot } from '@/components/LumiChatbot';
 
 const Landing = () => {
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Animated gradient background */}
-      <div className="fixed inset-0 bg-gradient-to-br from-background via-card to-background">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,hsl(25_95%_60%/0.15),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,hsl(320_80%_55%/0.15),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(280_70%_50%/0.1),transparent_70%)]" />
-      </div>
-
-      <FloatingOrbs />
+      {/* Aurora animated background */}
+      <AuroraBackground />
       <FloatingIcons />
 
       {/* Header */}
@@ -28,11 +24,22 @@ const Landing = () => {
       >
         <motion.div 
           className="flex items-center gap-3"
-          whileHover={{ scale: 1.05 }}
+          whileHover={{ scale: 1.05, x: 5 }}
+          transition={{ type: 'spring', stiffness: 300 }}
         >
-          <div className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center glow-primary">
+          <motion.div 
+            className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center"
+            animate={{
+              boxShadow: [
+                '0 0 20px hsl(25 95% 60% / 0.4)',
+                '0 0 40px hsl(320 80% 55% / 0.5)',
+                '0 0 20px hsl(25 95% 60% / 0.4)',
+              ],
+            }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+          >
             <Search className="text-primary-foreground" size={20} />
-          </div>
+          </motion.div>
           <span className="font-display font-bold text-xl text-foreground">
             Lost<span className="gradient-text">&</span>Found
           </span>
@@ -40,68 +47,94 @@ const Landing = () => {
 
         <div className="flex gap-3">
           <Link to="/login">
-            <Button variant="glass" size="lg" className="hover:scale-105 transition-transform">
-              Login
-            </Button>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
+              <Button 
+                variant="glass" 
+                size="lg" 
+                className="relative overflow-hidden group"
+              >
+                <span className="relative z-10">Login</span>
+                <motion.div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{
+                    background: 'linear-gradient(90deg, transparent, hsl(0 0% 100% / 0.1), transparent)',
+                  }}
+                  animate={{ x: ['-100%', '100%'] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                />
+              </Button>
+            </motion.div>
           </Link>
           <Link to="/signup">
-            <Button variant="hero" size="lg" className="hover:scale-105 transition-transform">
-              Sign Up
-            </Button>
+            <motion.div 
+              whileHover={{ scale: 1.05 }} 
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button 
+                variant="hero" 
+                size="lg" 
+                className="shimmer-btn"
+                style={{
+                  boxShadow: '0 0 30px hsl(320 80% 55% / 0.4)',
+                }}
+              >
+                Sign Up
+              </Button>
+            </motion.div>
           </Link>
         </div>
       </motion.header>
 
       {/* Hero Section */}
-      <main className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-180px)] px-6 text-center">
-        <AnimatedTagline />
+      <main className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-220px)] px-6">
+        <CinematicHero />
 
-        <motion.p
-          className="text-xl md:text-2xl text-muted-foreground mb-4"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.2 }}
-        >
-          🔍
-        </motion.p>
-
+        {/* CTA Buttons */}
         <motion.div
-          className="flex flex-col sm:flex-row gap-4 mt-8"
+          className="flex flex-col sm:flex-row gap-4 mt-12"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.4 }}
+          transition={{ duration: 0.6, delay: 2 }}
         >
           <Link to="/login">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
-              <Button variant="glass" size="xl" className="min-w-[140px]">
-                Login
+            <motion.div 
+              whileHover={{ scale: 1.05 }} 
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button 
+                variant="glass" 
+                size="xl" 
+                className="min-w-[160px] group relative overflow-hidden"
+              >
+                <span className="relative z-10">Login</span>
               </Button>
             </motion.div>
           </Link>
           <Link to="/signup">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
-              <Button variant="hero" size="xl" className="min-w-[140px]">
-                Sign Up
+            <motion.div 
+              whileHover={{ scale: 1.05 }} 
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button 
+                variant="hero" 
+                size="xl" 
+                className="min-w-[160px] shimmer-btn"
+                style={{
+                  boxShadow: '0 0 40px hsl(320 80% 55% / 0.5)',
+                }}
+              >
+                Get Started
               </Button>
             </motion.div>
           </Link>
         </motion.div>
       </main>
 
-      {/* Footer */}
-      <motion.footer
-        className="absolute bottom-0 left-0 right-0 z-10 p-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 1.6 }}
-      >
-        <div className="glass-card py-3 px-6 mx-auto w-fit">
-          <p className="text-sm text-muted-foreground text-center">
-            Made with <span className="text-destructive">❤️</span> by{' '}
-            <span className="gradient-text font-medium">SRKR CSE-A Boys</span> | Hackathon 2025
-          </p>
-        </div>
-      </motion.footer>
+      {/* Animated Footer */}
+      <AnimatedFooter />
+
+      {/* LUMI Chatbot */}
+      <LumiChatbot />
     </div>
   );
 };
