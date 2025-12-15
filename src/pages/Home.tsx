@@ -7,6 +7,7 @@ import { FloatingIcons } from '@/components/FloatingIcons';
 import { PageTransition } from '@/components/PageTransition';
 import { FilterTabs } from '@/components/FilterTabs';
 import { AlertBanner } from '@/components/AlertBanner';
+import { LumiChatbot } from '@/components/LumiChatbot';
 import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
 
@@ -189,6 +190,9 @@ const Home = () => {
           </div>
         </div>
       </main>
+
+      {/* LUMI Chatbot - Only visible after login */}
+      <LumiChatbot />
       </div>
     </PageTransition>
   );
