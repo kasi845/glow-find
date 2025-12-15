@@ -1,8 +1,6 @@
 import { motion } from 'framer-motion';
-import { Search, Package, FileText, Bell, MessageCircle, User, LogOut, Sun, Moon } from 'lucide-react';
+import { Search, Package, FileText, Bell, MessageCircle, User } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { useApp } from '@/contexts/AppContext';
-import { useState, useEffect } from 'react';
 
 const navItems = [
   { path: '/lost', icon: Search, label: 'Lost Items' },
@@ -15,12 +13,6 @@ const navItems = [
 
 export const Navbar = () => {
   const location = useLocation();
-  const { logout } = useApp();
-  const [isDark, setIsDark] = useState(true);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDark);
-  }, [isDark]);
 
   return (
     <motion.nav 
@@ -92,32 +84,6 @@ export const Navbar = () => {
               </Link>
             );
           })}
-          
-          {/* Theme Toggle */}
-          <motion.button
-            onClick={() => setIsDark(!isDark)}
-            className="p-2 rounded-xl text-muted-foreground hover:text-foreground transition-all duration-300 ml-1"
-            whileHover={{ scale: 1.1, rotate: 15 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ type: 'spring', stiffness: 300 }}
-          >
-            <motion.div
-              animate={{ rotate: isDark ? 0 : 180 }}
-              transition={{ duration: 0.5 }}
-            >
-              {isDark ? <Moon size={20} /> : <Sun size={20} />}
-            </motion.div>
-          </motion.button>
-          
-          <motion.button
-            onClick={logout}
-            className="p-2 rounded-xl text-muted-foreground hover:text-destructive transition-all duration-300 ml-1"
-            whileHover={{ scale: 1.1, x: 3, backgroundColor: 'hsl(var(--destructive) / 0.1)' }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ type: 'spring', stiffness: 300 }}
-          >
-            <LogOut size={20} />
-          </motion.button>
         </div>
       </div>
     </motion.nav>

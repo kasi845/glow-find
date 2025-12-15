@@ -9,7 +9,7 @@ const filters = ['All', 'Lost', 'Found', 'Claimed'];
 
 export const FilterTabs = ({ activeFilter, onFilterChange }: FilterTabsProps) => {
   return (
-    <div className="flex gap-2 mb-6">
+    <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-6 px-2">
       {filters.map((filter) => (
         <motion.button
           key={filter}
