@@ -6,7 +6,6 @@ import { FloatingIcons } from '@/components/FloatingIcons';
 import { AuroraBackground } from '@/components/AuroraBackground';
 import { CinematicHero } from '@/components/CinematicHero';
 import { AnimatedFooter } from '@/components/AnimatedFooter';
-import { LumiChatbot } from '@/components/LumiChatbot';
 
 const Landing = () => {
   return (
@@ -132,9 +131,6 @@ const Landing = () => {
 
       {/* Animated Footer */}
       <AnimatedFooter />
-
-      {/* LUMI Chatbot */}
-      <LumiChatbot />
     </div>
   );
 };

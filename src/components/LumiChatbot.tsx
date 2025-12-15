@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X, Send, Sparkles } from 'lucide-react';
+import { Bot, X, Send, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -50,10 +50,10 @@ export const LumiChatbot = () => {
 
   return (
     <>
-      {/* Floating Button */}
+      {/* Floating Button with Bot Icon */}
       <motion.button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 gradient-bg text-primary-foreground rounded-full p-4 shadow-2xl"
+        className="fixed bottom-6 right-6 z-50 gradient-bg text-primary-foreground rounded-full p-4 shadow-2xl chatbot-glow"
         animate={{
           scale: [1, 1.05, 1],
           boxShadow: [
@@ -66,7 +66,7 @@ export const LumiChatbot = () => {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
       >
-        <MessageCircle size={24} />
+        <Bot size={26} className="drop-shadow-md" />
       </motion.button>
 
       {/* Chat Modal */}
