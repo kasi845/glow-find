@@ -2,18 +2,16 @@ import { motion, useMotionValue, useSpring } from "framer-motion";
 import { useEffect, useState } from "react";
 
 export default function CustomCursor() {
-  const [hoverType, setHoverType] = useState<'default' | 'button' | 'text'>('default');
-
+  const [isHovered, setIsHovered] = useState(false);
   const cursorX = useMotionValue(0);
   const cursorY = useMotionValue(0);
 
-  const smoothX = useSpring(cursorX, { stiffness: 150, damping: 20 });
-  const smoothY = useSpring(cursorY, { stiffness: 150, damping: 20 });
+  const smoothX = useSpring(cursorX, { stiffness: 120, damping: 20 });
+  const smoothY = useSpring(cursorY, { stiffness: 120, damping: 20 });
 
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    // Check for mobile on mount
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener("resize", checkMobile);
@@ -23,39 +21,25 @@ export default function CustomCursor() {
   useEffect(() => {
     if (isMobile) return;
 
-    const moveCursor = (e: MouseEvent) => {
-      cursorX.set(e.clientX);
-      cursorY.set(e.clientY);
+    const move = (e: MouseEvent) => {
+      cursorX.set(e.clientX - 25);
+      cursorY.set(e.clientY - 25);
     };
+    window.addEventListener("mousemove", move);
 
-    const handleButtonEnter = () => setHoverType('button');
-    const handleTextEnter = () => setHoverType('text');
-    const handleLeave = () => setHoverType('default');
+    const handleEnter = () => setIsHovered(true);
+    const handleLeave = () => setIsHovered(false);
 
-    window.addEventListener("mousemove", moveCursor);
-
-    // Button/link hover handlers
-    const interactiveElements = document.querySelectorAll("button, a, input, [role='button']");
-    interactiveElements.forEach((el) => {
-      el.addEventListener("mouseenter", handleButtonEnter);
-      el.addEventListener("mouseleave", handleLeave);
-    });
-
-    // Text hover handlers for spotlight effect
-    const textElements = document.querySelectorAll("h1, h2, h3, p, span");
-    textElements.forEach((el) => {
-      el.addEventListener("mouseenter", handleTextEnter);
+    const hoverables = document.querySelectorAll("button, a, input, .hover-react");
+    hoverables.forEach((el) => {
+      el.addEventListener("mouseenter", handleEnter);
       el.addEventListener("mouseleave", handleLeave);
     });
 
     return () => {
-      window.removeEventListener("mousemove", moveCursor);
-      interactiveElements.forEach((el) => {
-        el.removeEventListener("mouseenter", handleButtonEnter);
-        el.removeEventListener("mouseleave", handleLeave);
-      });
-      textElements.forEach((el) => {
-        el.removeEventListener("mouseenter", handleTextEnter);
+      window.removeEventListener("mousemove", move);
+      hoverables.forEach((el) => {
+        el.removeEventListener("mouseenter", handleEnter);
         el.removeEventListener("mouseleave", handleLeave);
       });
     };
@@ -63,55 +47,14 @@ export default function CustomCursor() {
 
   if (isMobile) return null;
 
-  // Different cursor styles based on hover type
-  const getCursorStyles = () => {
-    switch (hoverType) {
-      case 'button':
-        return {
-          width: 24,
-          height: 24,
-          opacity: 0.7,
-          filter: 'blur(8px)',
-        };
-      case 'text':
-        return {
-          width: 80,
-          height: 80,
-          opacity: 0.3,
-          filter: 'blur(20px)',
-        };
-      default:
-        return {
-          width: 64,
-          height: 64,
-          opacity: 0.2,
-          filter: 'blur(32px)',
-        };
-    }
-  };
-
-  const styles = getCursorStyles();
-
   return (
     <motion.div
-      className="fixed top-0 left-0 pointer-events-none rounded-full mix-blend-screen z-[9999] bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500"
-      style={{
-        x: smoothX,
-        y: smoothY,
-        translateX: '-50%',
-        translateY: '-50%',
-      }}
-      animate={{
-        width: styles.width,
-        height: styles.height,
-        opacity: styles.opacity,
-        filter: styles.filter,
-      }}
-      transition={{
-        type: 'spring',
-        stiffness: 300,
-        damping: 30,
-      }}
+      className={`fixed top-0 left-0 pointer-events-none rounded-full mix-blend-screen z-[9999] transition-all duration-[250ms] ${
+        isHovered
+          ? "w-10 h-10 bg-gradient-to-r from-[#00E5FF] via-[#C77DFF] to-[#FF4D6D] opacity-80 blur-md"
+          : "w-16 h-16 bg-gradient-to-r from-[#00E5FF] via-[#C77DFF] to-[#FF4D6D] opacity-25 blur-2xl"
+      }`}
+      style={{ x: smoothX, y: smoothY }}
     />
   );
 }
