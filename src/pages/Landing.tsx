@@ -6,10 +6,14 @@ import { FloatingIcons } from '@/components/FloatingIcons';
 import { AuroraBackground } from '@/components/AuroraBackground';
 import { CinematicHero } from '@/components/CinematicHero';
 import { AnimatedFooter } from '@/components/AnimatedFooter';
+import CustomCursor from '@/components/CustomCursor';
 
 const Landing = () => {
   return (
     <div className="min-h-screen relative overflow-hidden">
+      {/* Custom animated cursor */}
+      <CustomCursor />
+      
       {/* Aurora animated background */}
       <AuroraBackground />
       <FloatingIcons />
