@@ -147,20 +147,6 @@
     box-shadow: 0 0 20px hsl(320 80% 55% / 0.4),
                 0 0 40px hsl(320 80% 55% / 0.2);
   }
-
-  .glow-shadow {
-    box-shadow: 0 0 15px hsl(320 80% 55% / 0.3),
-                0 0 25px hsl(320 80% 55% / 0.15);
-  }
-
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
 }
 
 @layer utilities {
