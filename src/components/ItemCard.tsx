@@ -1,5 +1,5 @@
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
-import { MapPin, Calendar, User } from 'lucide-react';
+import { MapPin, Calendar, User, Handshake, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Item } from '@/contexts/AppContext';
 
@@ -7,9 +7,17 @@ interface ItemCardProps {
   item: Item;
   onClaim: () => void;
   index: number;
+  buttonText?: string;
+  buttonIcon?: 'claim' | 'found';
 }
 
-export const ItemCard: React.FC<ItemCardProps> = ({ item, onClaim, index }) => {
+export const ItemCard: React.FC<ItemCardProps> = ({ 
+  item, 
+  onClaim, 
+  index,
+  buttonText = 'Claim Item',
+  buttonIcon = 'claim'
+}) => {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
@@ -84,9 +92,14 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onClaim, index }) => {
         <Button 
           onClick={onClaim}
           variant="gradient"
-          className="w-full shimmer-btn"
+          className="w-full shimmer-btn flex items-center justify-center gap-2"
         >
-          Claim Item
+          {buttonIcon === 'found' ? (
+            <Handshake size={18} />
+          ) : (
+            <CheckCircle size={18} />
+          )}
+          {buttonText}
         </Button>
       </div>
     </motion.div>
