@@ -5,7 +5,7 @@ import { Navbar } from '@/components/Navbar';
 import { FloatingIcons } from '@/components/FloatingIcons';
 import { PageTransition } from '@/components/PageTransition';
 import { ItemCard } from '@/components/ItemCard';
-import { ClaimModal } from '@/components/ClaimModal';
+import { FoundReportModal } from '@/components/FoundReportModal';
 import { Input } from '@/components/ui/input';
 import { useApp, Item } from '@/contexts/AppContext';
 
@@ -38,7 +38,7 @@ const LostItems = () => {
               <span className="gradient-text">Lost Items</span>
             </h1>
             <p className="text-muted-foreground text-lg mb-6">
-              Browse through items that people have reported as lost
+              Help reunite people with their lost belongings
             </p>
 
             {/* Search */}
@@ -61,6 +61,8 @@ const LostItems = () => {
                 item={item}
                 index={index}
                 onClaim={() => setSelectedItem(item)}
+                buttonText="I Found This"
+                buttonIcon="found"
               />
             ))}
           </div>
@@ -77,7 +79,7 @@ const LostItems = () => {
         </div>
       </main>
 
-      <ClaimModal
+      <FoundReportModal
         item={selectedItem}
         isOpen={!!selectedItem}
         onClose={() => setSelectedItem(null)}
