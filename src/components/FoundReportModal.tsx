@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
-import { X, Handshake } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { X, Handshake, Upload, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,12 +14,45 @@ interface FoundReportModalProps {
 }
 
 export const FoundReportModal: React.FC<FoundReportModalProps> = ({ item, isOpen, onClose }) => {
-  const { submitClaim, user } = useApp();
+  const { submitClaim } = useApp();
   const { toast } = useToast();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please upload an image under 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Validate file type
+      if (!file.type.match(/^image\/(jpeg|png|jpg)$/)) {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload a JPG or PNG image",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +64,7 @@ export const FoundReportModal: React.FC<FoundReportModalProps> = ({ item, isOpen
       claimerName: name,
       claimerEmail: email,
       claimerPhone: phone,
-      proofImage: message,
+      proofImage: imagePreview || message,
     });
 
     toast({
@@ -43,6 +76,7 @@ export const FoundReportModal: React.FC<FoundReportModalProps> = ({ item, isOpen
     setEmail('');
     setPhone('');
     setMessage('');
+    setImagePreview(null);
     onClose();
   };
 
@@ -61,7 +95,7 @@ export const FoundReportModal: React.FC<FoundReportModalProps> = ({ item, isOpen
           />
           
           <motion.div
-            className="relative glass-card w-full max-w-md p-6 border border-pink-500/20"
+            className="relative glass-card w-full max-w-md p-6 border border-pink-500/20 max-h-[90vh] overflow-y-auto"
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -134,6 +168,54 @@ export const FoundReportModal: React.FC<FoundReportModalProps> = ({ item, isOpen
                   required
                   className="bg-muted/50 border-border min-h-[100px]"
                 />
+              </div>
+
+              {/* Image Upload Section */}
+              <div>
+                <div 
+                  className="border-2 border-dashed border-pink-500/20 rounded-xl p-4 text-center hover:border-pink-500/40 transition-colors cursor-pointer"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img 
+                        src={imagePreview} 
+                        alt="Preview" 
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setImagePreview(null);
+                        }}
+                        className="absolute top-2 right-2 p-1 bg-black/50 rounded-full hover:bg-black/70"
+                      >
+                        <X size={14} className="text-white" />
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="mx-auto mb-2 text-muted-foreground" size={24} />
+                      <p className="text-sm text-muted-foreground mb-1">
+                        Upload found item image (optional)
+                      </p>
+                      <p className="text-xs text-muted-foreground/70">
+                        JPG, PNG • Max 5MB
+                      </p>
+                    </>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/jpg"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Upload a photo to help the owner verify the item
+                </p>
               </div>
 
               <Button

@@ -32,14 +32,9 @@ const Landing = () => {
         >
           <motion.div 
             className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center"
-            animate={{
-              boxShadow: [
-                '0 0 20px hsl(25 95% 60% / 0.4)',
-                '0 0 40px hsl(320 80% 55% / 0.5)',
-                '0 0 20px hsl(25 95% 60% / 0.4)',
-              ],
-            }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            initial={{ boxShadow: '0 0 20px hsl(25 95% 60% / 0.4)' }}
+            animate={{ boxShadow: '0 0 30px hsl(320 80% 55% / 0.5)' }}
+            transition={{ duration: 1.5, ease: 'easeOut' }}
           >
             <Search className="text-primary-foreground" size={20} />
           </motion.div>

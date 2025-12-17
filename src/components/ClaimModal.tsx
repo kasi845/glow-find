@@ -1,8 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Upload } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { useApp, Item } from '@/contexts/AppContext';
 import { toast } from '@/hooks/use-toast';
 
@@ -18,8 +19,42 @@ export const ClaimModal: React.FC<ClaimModalProps> = ({ item, isOpen, onClose })
     name: '',
     email: '',
     phone: '',
+    description: '',
     proofImage: ''
   });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please upload an image under 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Validate file type
+      if (!file.type.match(/^image\/(jpeg|png|jpg)$/)) {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload a JPG or PNG image",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +66,7 @@ export const ClaimModal: React.FC<ClaimModalProps> = ({ item, isOpen, onClose })
       claimerName: formData.name,
       claimerEmail: formData.email,
       claimerPhone: formData.phone,
-      proofImage: formData.proofImage || 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400'
+      proofImage: imagePreview || formData.proofImage || 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400'
     });
 
     toast({
@@ -39,7 +74,8 @@ export const ClaimModal: React.FC<ClaimModalProps> = ({ item, isOpen, onClose })
       description: "The owner will be notified and can accept your claim.",
     });
 
-    setFormData({ name: '', email: '', phone: '', proofImage: '' });
+    setFormData({ name: '', email: '', phone: '', description: '', proofImage: '' });
+    setImagePreview(null);
     onClose();
   };
 
@@ -58,7 +94,7 @@ export const ClaimModal: React.FC<ClaimModalProps> = ({ item, isOpen, onClose })
           />
           
           <motion.div
-            className="relative glass-card p-6 w-full max-w-md"
+            className="relative glass-card p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
             initial={{ scale: 0.9, y: 20 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.9, y: 20 }}
@@ -110,15 +146,71 @@ export const ClaimModal: React.FC<ClaimModalProps> = ({ item, isOpen, onClose })
                 />
               </div>
 
+              {/* Description field */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Describe how you know this item is yours
+                </label>
+                <Textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Describe unique marks, contents, scratches, etc. that prove ownership..."
+                  required
+                  className="min-h-[100px]"
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-medium mb-2">Upload Proof Image</label>
-                <div className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary/50 transition-colors cursor-pointer">
-                  <Upload className="mx-auto mb-2 text-muted-foreground" size={24} />
-                  <p className="text-sm text-muted-foreground">
-                    Click to upload or drag and drop
-                  </p>
+                <div 
+                  className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary/50 transition-colors cursor-pointer"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img 
+                        src={imagePreview} 
+                        alt="Preview" 
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setImagePreview(null);
+                        }}
+                        className="absolute top-2 right-2 p-1 bg-black/50 rounded-full hover:bg-black/70"
+                      >
+                        <X size={14} className="text-white" />
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="mx-auto mb-2 text-muted-foreground" size={24} />
+                      <p className="text-sm text-muted-foreground">
+                        Click to upload or drag and drop
+                      </p>
+                      <p className="text-xs text-muted-foreground/70 mt-1">
+                        JPG, PNG • Max 5MB
+                      </p>
+                    </>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/jpg"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
                 </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Upload proof (ID, bill, unique mark on item)
+                </p>
               </div>
+
+              <p className="text-xs text-muted-foreground/80">
+                ⚠️ False claims may result in account suspension.
+              </p>
 
               <Button type="submit" variant="hero" className="w-full">
                 Submit Claim
