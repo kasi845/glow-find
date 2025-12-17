@@ -1,121 +1,141 @@
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 
 export const AuroraBackground = () => {
+  const [animateOrbs, setAnimateOrbs] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    // Check for mobile and reduced motion
+    setIsMobile(window.innerWidth < 768);
+    setPrefersReducedMotion(
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    );
+
+    // Stop orb animations after 4 seconds
+    const timer = setTimeout(() => setAnimateOrbs(false), 4000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Minimal background for mobile or reduced motion
+  if (isMobile || prefersReducedMotion) {
+    return (
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-card to-background" />
+        {/* Static orbs without animation */}
+        <div
+          className="absolute w-56 h-56 rounded-full blur-xl opacity-15"
+          style={{
+            background: 'radial-gradient(circle, hsl(25 95% 60% / 0.2) 0%, transparent 70%)',
+            top: '10%',
+            left: '10%',
+          }}
+        />
+        <div
+          className="absolute w-48 h-48 rounded-full blur-xl opacity-12"
+          style={{
+            background: 'radial-gradient(circle, hsl(320 80% 55% / 0.18) 0%, transparent 70%)',
+            top: '50%',
+            right: '15%',
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
       {/* Base gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-card to-background" />
       
-      {/* Aurora layers */}
+      {/* Aurora layer - runs once then stops */}
       <motion.div
         className="absolute inset-0 opacity-30"
         style={{
           background: 'linear-gradient(45deg, hsl(25 95% 60% / 0.15), transparent 50%, hsl(320 80% 55% / 0.15))',
         }}
-        animate={{
-          background: [
-            'linear-gradient(45deg, hsl(25 95% 60% / 0.15), transparent 50%, hsl(320 80% 55% / 0.15))',
-            'linear-gradient(90deg, hsl(320 80% 55% / 0.15), transparent 50%, hsl(280 70% 50% / 0.15))',
-            'linear-gradient(135deg, hsl(280 70% 50% / 0.15), transparent 50%, hsl(25 95% 60% / 0.15))',
-            'linear-gradient(45deg, hsl(25 95% 60% / 0.15), transparent 50%, hsl(320 80% 55% / 0.15))',
-          ],
+        initial={{
+          background: 'linear-gradient(45deg, hsl(25 95% 60% / 0.15), transparent 50%, hsl(320 80% 55% / 0.15))',
         }}
-        transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
+        animate={{
+          background: 'linear-gradient(135deg, hsl(280 70% 50% / 0.15), transparent 50%, hsl(25 95% 60% / 0.15))',
+        }}
+        transition={{ duration: 4, ease: 'easeInOut' }}
       />
 
-      {/* Floating orbs with depth */}
+      {/* Floating orbs - reduced blur, stop after animation */}
       <motion.div
-        className="absolute w-[600px] h-[600px] rounded-full blur-[150px]"
+        className="absolute w-56 h-56 rounded-full blur-xl"
         style={{
           background: 'radial-gradient(circle, hsl(25 95% 60% / 0.2) 0%, transparent 70%)',
           top: '5%',
           left: '5%',
         }}
-        animate={{
-          x: [0, 120, 60, 0],
-          y: [0, 80, 120, 0],
-          scale: [1, 1.3, 0.9, 1],
-        }}
-        transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut' }}
+        initial={{ x: 0, y: 0, scale: 1, opacity: 0 }}
+        animate={animateOrbs 
+          ? { x: 60, y: 40, scale: 1.1, opacity: 0.2 }
+          : { x: 60, y: 40, scale: 1.1, opacity: 0.2 }
+        }
+        transition={{ duration: 3, ease: 'easeOut' }}
       />
 
       <motion.div
-        className="absolute w-[500px] h-[500px] rounded-full blur-[120px]"
+        className="absolute w-48 h-48 rounded-full blur-xl"
         style={{
           background: 'radial-gradient(circle, hsl(320 80% 55% / 0.18) 0%, transparent 70%)',
           top: '40%',
           right: '10%',
         }}
-        animate={{
-          x: [0, -100, -50, 0],
-          y: [0, -80, 60, 0],
-          scale: [1, 0.85, 1.15, 1],
-        }}
-        transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
+        initial={{ x: 0, y: 0, scale: 1, opacity: 0 }}
+        animate={animateOrbs 
+          ? { x: -50, y: -30, scale: 1.05, opacity: 0.18 }
+          : { x: -50, y: -30, scale: 1.05, opacity: 0.18 }
+        }
+        transition={{ duration: 3.5, ease: 'easeOut' }}
       />
 
       <motion.div
-        className="absolute w-[450px] h-[450px] rounded-full blur-[100px]"
+        className="absolute w-44 h-44 rounded-full blur-lg"
         style={{
           background: 'radial-gradient(circle, hsl(280 70% 50% / 0.15) 0%, transparent 70%)',
           bottom: '15%',
           left: '25%',
         }}
-        animate={{
-          x: [0, 80, -40, 0],
-          y: [0, -50, 80, 0],
-          scale: [1, 1.15, 0.9, 1],
-        }}
-        transition={{ duration: 28, repeat: Infinity, ease: 'easeInOut' }}
+        initial={{ x: 0, y: 0, scale: 1, opacity: 0 }}
+        animate={animateOrbs 
+          ? { x: 40, y: -25, scale: 1.08, opacity: 0.15 }
+          : { x: 40, y: -25, scale: 1.08, opacity: 0.15 }
+        }
+        transition={{ duration: 3.2, ease: 'easeOut' }}
       />
 
-      {/* Light streaks */}
+      {/* Light streaks - single animation */}
       <motion.div
-        className="absolute w-[2px] h-[200px] opacity-10"
+        className="absolute w-[2px] h-[150px]"
         style={{
           background: 'linear-gradient(to bottom, transparent, hsl(320 80% 55%), transparent)',
           top: '20%',
           left: '30%',
           transform: 'rotate(45deg)',
         }}
-        animate={{ opacity: [0.05, 0.15, 0.05], y: [0, 50, 0] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+        initial={{ opacity: 0, y: 0 }}
+        animate={{ opacity: 0.1, y: 30 }}
+        transition={{ duration: 2, ease: 'easeOut' }}
       />
 
       <motion.div
-        className="absolute w-[2px] h-[150px] opacity-10"
+        className="absolute w-[2px] h-[120px]"
         style={{
           background: 'linear-gradient(to bottom, transparent, hsl(25 95% 60%), transparent)',
           top: '50%',
           right: '25%',
           transform: 'rotate(-30deg)',
         }}
-        animate={{ opacity: [0.08, 0.2, 0.08], y: [0, -30, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+        initial={{ opacity: 0, y: 0 }}
+        animate={{ opacity: 0.12, y: -20 }}
+        transition={{ duration: 2.5, ease: 'easeOut' }}
       />
-
-      {/* Particle dust */}
-      {[...Array(20)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-1 h-1 rounded-full bg-primary/20"
-          style={{
-            top: `${Math.random() * 100}%`,
-            left: `${Math.random() * 100}%`,
-          }}
-          animate={{
-            opacity: [0, 0.5, 0],
-            scale: [0, 1, 0],
-            y: [0, -30, -60],
-          }}
-          transition={{
-            duration: 4 + Math.random() * 4,
-            repeat: Infinity,
-            delay: Math.random() * 5,
-            ease: 'easeOut',
-          }}
-        />
-      ))}
     </div>
   );
 };
