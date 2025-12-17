@@ -39,7 +39,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
   return (
     <motion.div
-      className="glass-card overflow-hidden group cursor-pointer"
+      className="glass-card overflow-hidden group cursor-pointer flex flex-col h-full"
       style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
@@ -48,7 +48,8 @@ export const ItemCard: React.FC<ItemCardProps> = ({
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="relative h-48 overflow-hidden" style={{ transform: 'translateZ(20px)' }}>
+      {/* Fixed height image section */}
+      <div className="relative h-44 w-full overflow-hidden flex-shrink-0" style={{ transform: 'translateZ(20px)' }}>
         <img 
           src={item.image} 
           alt={item.title}
@@ -66,7 +67,8 @@ export const ItemCard: React.FC<ItemCardProps> = ({
         </div>
       </div>
 
-      <div className="p-5" style={{ transform: 'translateZ(30px)' }}>
+      {/* Content section with flex-grow */}
+      <div className="p-5 flex flex-col flex-grow" style={{ transform: 'translateZ(30px)' }}>
         <h3 className="font-display font-semibold text-lg text-foreground mb-2 line-clamp-1">
           {item.title}
         </h3>
@@ -76,23 +78,26 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
         <div className="space-y-2 mb-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <MapPin size={14} className="text-primary" />
+            <MapPin size={14} className="text-primary flex-shrink-0" />
             <span className="line-clamp-1">{item.location}</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Calendar size={14} className="text-secondary" />
+            <Calendar size={14} className="text-secondary flex-shrink-0" />
             <span>{new Date(item.date).toLocaleDateString()}</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <User size={14} className="text-accent" />
+            <User size={14} className="text-accent flex-shrink-0" />
             <span>{item.userName}</span>
           </div>
         </div>
 
+        {/* Spacer to push button to bottom */}
+        <div className="flex-grow" />
+
         <Button 
           onClick={onClaim}
           variant="gradient"
-          className="w-full shimmer-btn flex items-center justify-center gap-2"
+          className="w-full shimmer-btn flex items-center justify-center gap-2 mt-auto"
         >
           {buttonIcon === 'found' ? (
             <Handshake size={18} />
