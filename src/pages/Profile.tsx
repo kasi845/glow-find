@@ -15,12 +15,11 @@ const Profile = () => {
   const { user, logout, updateUser, claimRequests } = useApp();
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
-    name: user?.name || '',
-    email: user?.email || ''
+    name: user?.name || ''
   });
 
   const handleSave = () => {
-    updateUser(editData);
+    updateUser({ ...editData, email: user?.email || '' });
     setIsEditing(false);
     toast({
       title: "Profile Updated! ✨",
@@ -131,12 +130,13 @@ const Profile = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">Email</label>
-                      <Input
-                        type="email"
-                        value={editData.email}
-                        onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                      />
+                      <label className="block text-sm text-muted-foreground mb-2">Email</label>
+                      <div className="px-4 py-3 rounded-xl bg-muted/30 text-muted-foreground cursor-not-allowed border border-border/50">
+                        {user?.email}
+                      </div>
+                      <span className="text-xs text-muted-foreground mt-1 block">
+                        Email cannot be changed for security reasons
+                      </span>
                     </div>
                     <div className="flex gap-3 justify-center">
                       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>

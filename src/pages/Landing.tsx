@@ -1,14 +1,25 @@
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search } from 'lucide-react';
+import { Search, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FloatingIcons } from '@/components/FloatingIcons';
 import { AuroraBackground } from '@/components/AuroraBackground';
 import { CinematicHero } from '@/components/CinematicHero';
 import { AnimatedFooter } from '@/components/AnimatedFooter';
+import { AboutSection } from '@/components/AboutSection';
 import CustomCursor from '@/components/CustomCursor';
 
 const Landing = () => {
+  const [showAbout, setShowAbout] = useState(false);
+
+  const scrollToAbout = () => {
+    setShowAbout(true);
+    setTimeout(() => {
+      document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Custom animated cursor */}
@@ -44,6 +55,17 @@ const Landing = () => {
         </motion.div>
 
         <div className="flex gap-3">
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
+            <Button 
+              variant="glass" 
+              size="lg" 
+              onClick={scrollToAbout}
+              className="relative overflow-hidden group"
+            >
+              <Info size={16} className="mr-2" />
+              <span className="relative z-10">About</span>
+            </Button>
+          </motion.div>
           <Link to="/login">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
               <Button 
@@ -127,6 +149,9 @@ const Landing = () => {
           </Link>
         </motion.div>
       </main>
+
+      {/* About Section - shows when scrolled or clicked */}
+      {showAbout && <AboutSection />}
 
       {/* Animated Footer */}
       <AnimatedFooter />
