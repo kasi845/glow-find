@@ -1,4 +1,8 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+if (!API_BASE_URL) {
+  console.error("VITE_API_BASE_URL is missing in environment variables.");
+}
 
 async function handleResponse(res: Response) {
   if (res.ok) return res.json();

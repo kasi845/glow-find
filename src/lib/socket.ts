@@ -1,6 +1,10 @@
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const SOCKET_URL = import.meta.env.VITE_API_BASE_URL;
+
+if (!SOCKET_URL) {
+    console.error("VITE_API_BASE_URL is missing for Socket connection.");
+}
 
 export class SocketService {
     private socket: Socket | null = null;
