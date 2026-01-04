@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { apiAcceptClaim, apiCreateClaim, apiCreateItem, apiGetClaims, apiGetItems, apiLogin, apiMe, apiRejectClaim, apiSignup, apiUploadImage, apiGetNotifications, apiMarkNotificationRead, apiMarkClaimDone, apiGetConversations } from '@/lib/api';
+import { socketService } from '@/lib/socket';
 
 export interface Item {
   id: string;
@@ -10,10 +12,12 @@ export interface Item {
   contact: string;
   image: string;
   type: 'lost' | 'found';
-  status: 'pending' | 'claimed' | 'completed';
+  status: 'pending' | 'claimed' | 'completed' | 'accepted';
   userId: string;
   userName: string;
 }
+
+
 
 export interface ClaimRequest {
   id: string;
@@ -23,7 +27,21 @@ export interface ClaimRequest {
   claimerEmail: string;
   claimerPhone: string;
   proofImage: string;
-  status: 'pending' | 'accepted' | 'rejected';
+  status: 'pending' | 'accepted' | 'rejected' | 'done';
+  createdAt: string;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: 'claim_received' | 'claim_accepted' | 'claim_declined' | 'claim_done';
+  claimId: string;
+  itemId: string;
+  itemTitle: string;
+  senderName: string;
+  senderEmail: string;
+  message: string;
+  read: boolean;
   createdAt: string;
 }
 
@@ -44,187 +62,371 @@ export interface Chat {
   unread: boolean;
 }
 
+export interface Conversation {
+  claimId: string;
+  itemTitle: string;
+  otherUserEmail: string;
+  otherUserName: string;
+  lastMessage: string;
+  lastMessageTime: string;
+  unread: boolean;
+}
+
 export interface User {
-  id: string;
+  id?: string;
   name: string;
   email: string;
-  avatar: string;
+  avatar?: string;
   itemsReported: { inProcess: number; completed: number };
   itemsFound: { inProcess: number; completed: number };
+  isAdmin?: boolean;
 }
 
 interface AppContextType {
   isLoggedIn: boolean;
+  token: string | null;
   user: User | null;
   items: Item[];
   claimRequests: ClaimRequest[];
+  notifications: Notification[];
+  conversations: Conversation[];
   chats: Chat[];
   messages: Message[];
-  login: (email: string, password: string) => void;
-  signup: (name: string, email: string, password: string) => void;
+  login: (email: string, password: string) => Promise<User | null>;
+  signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
-  addItem: (item: Omit<Item, 'id' | 'status' | 'userId' | 'userName'>) => void;
-  submitClaim: (claim: Omit<ClaimRequest, 'id' | 'status' | 'createdAt'>) => void;
-  acceptClaim: (claimId: string) => void;
-  rejectClaim: (claimId: string) => void;
+  reportItem: (item: {
+    title: string;
+    description: string;
+    category: string;
+    location: string;
+    date: string;
+    contact: string;
+    image: string;
+    type: 'lost' | 'found';
+  }) => Promise<void>;
+  submitClaim: (claim: Omit<ClaimRequest, 'id' | 'status' | 'createdAt'>) => Promise<void>;
+  acceptClaim: (claimId: string) => Promise<void>;
+  rejectClaim: (claimId: string) => Promise<void>;
+  markClaimDone: (claimId: string) => Promise<void>;
   sendMessage: (receiverId: string, content: string) => void;
   updateUser: (updates: Partial<User>) => void;
+  searchItems: (status?: 'lost' | 'found', searchQuery?: string) => Promise<void>;
+  loadItems: () => Promise<void>;
+  loadNotifications: () => Promise<void>;
+  markNotificationRead: (notificationId: string) => Promise<void>;
+  loadConversations: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-// Mock data
-const mockItems: Item[] = [
-  {
-    id: '1',
-    title: 'Black Leather Wallet',
-    description: 'Contains ID cards and some cash. Lost near Central Park.',
-    category: 'Wallet',
-    location: 'Central Park, NYC',
-    date: '2024-01-15',
-    contact: 'john@email.com',
-    image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=400',
-    type: 'lost',
-    status: 'pending',
-    userId: '2',
-    userName: 'John Doe'
-  },
-  {
-    id: '2',
-    title: 'iPhone 15 Pro',
-    description: 'Space black, has a clear case. Found on subway.',
-    category: 'Electronics',
-    location: 'Subway Station B',
-    date: '2024-01-14',
-    contact: 'jane@email.com',
-    image: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=400',
-    type: 'found',
-    status: 'pending',
-    userId: '3',
-    userName: 'Jane Smith'
-  },
-  {
-    id: '3',
-    title: 'Car Keys - Toyota',
-    description: 'Toyota key fob with house keys attached.',
-    category: 'Keys',
-    location: 'Coffee Shop on 5th Ave',
-    date: '2024-01-13',
-    contact: 'mike@email.com',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
-    type: 'lost',
-    status: 'pending',
-    userId: '4',
-    userName: 'Mike Johnson'
-  },
-  {
-    id: '4',
-    title: 'Blue Backpack',
-    description: 'North Face backpack with laptop inside.',
-    category: 'Bags',
-    location: 'Library Main Hall',
-    date: '2024-01-12',
-    contact: 'sarah@email.com',
-    image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400',
-    type: 'found',
-    status: 'pending',
-    userId: '5',
-    userName: 'Sarah Wilson'
-  },
-];
-
-const mockChats: Chat[] = [
-  {
-    id: '1',
-    participantId: '2',
-    participantName: 'John Doe',
-    participantAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100',
-    lastMessage: 'Thanks for finding my wallet!',
-    unread: true
-  },
-  {
-    id: '2',
-    participantId: '3',
-    participantName: 'Jane Smith',
-    participantAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
-    lastMessage: 'Can we meet at 5pm?',
-    unread: false
-  }
-];
-
-const mockMessages: Message[] = [
-  { id: '1', senderId: '2', receiverId: '1', content: 'Hi! I think you found my wallet!', timestamp: '2024-01-15T10:00:00' },
-  { id: '2', senderId: '1', receiverId: '2', content: 'Yes! Can you describe it?', timestamp: '2024-01-15T10:05:00' },
-  { id: '3', senderId: '2', receiverId: '1', content: 'Its a black leather wallet with my ID inside', timestamp: '2024-01-15T10:10:00' },
-  { id: '4', senderId: '1', receiverId: '2', content: 'That matches! Where can we meet?', timestamp: '2024-01-15T10:15:00' },
-];
+// No mock data - all data comes from backend
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [token, setToken] = useState<string | null>(localStorage.getItem('auth_token'));
   const [user, setUser] = useState<User | null>(null);
-  const [items, setItems] = useState<Item[]>(mockItems);
+  const [items, setItems] = useState<Item[]>([]);
   const [claimRequests, setClaimRequests] = useState<ClaimRequest[]>([]);
-  const [chats, setChats] = useState<Chat[]>(mockChats);
-  const [messages, setMessages] = useState<Message[]>(mockMessages);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
 
-  const login = (email: string, password: string) => {
-    setUser({
-      id: '1',
-      name: 'Alex Rivera',
-      email: email,
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200',
-      itemsReported: { inProcess: 2, completed: 3 },
-      itemsFound: { inProcess: 1, completed: 2 }
-    });
+  const toUser = (data: { name: string; email: string; createdAt?: string; isAdmin?: boolean }): User => ({
+    name: data.name,
+    email: data.email,
+    itemsReported: { inProcess: 0, completed: 0 },
+    itemsFound: { inProcess: 0, completed: 0 },
+    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200',
+    isAdmin: data.isAdmin
+  });
+
+  const login = async (email: string, password: string) => {
+    const tokenRes = await apiLogin({ email, password });
+    const accessToken = tokenRes.access_token;
+    setToken(accessToken);
+    localStorage.setItem('auth_token', accessToken);
+
+    const me = await apiMe(accessToken);
+    const userObj = toUser(me);
+    setUser(userObj);
     setIsLoggedIn(true);
+
+    // Connect socket
+    socketService.connect(me.email);
+
+    return userObj;
   };
 
-  const signup = (name: string, email: string, password: string) => {
-    setUser({
-      id: '1',
-      name: name,
-      email: email,
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200',
-      itemsReported: { inProcess: 0, completed: 0 },
-      itemsFound: { inProcess: 0, completed: 0 }
-    });
-    setIsLoggedIn(true);
+  const signup = async (name: string, email: string, password: string) => {
+    await apiSignup({ name, email, password });
+    await login(email, password); // obtain token after signup
   };
+
+  // Auto-login if token exists
+  React.useEffect(() => {
+    const load = async () => {
+      if (!token) return;
+      try {
+        const me = await apiMe(token);
+        setUser(toUser(me));
+        setIsLoggedIn(true);
+      } catch (err) {
+        setToken(null);
+        localStorage.removeItem('auth_token');
+      }
+    };
+    load();
+  }, [token]);
+
+  // Load items from backend on first mount
+  const loadItems = React.useCallback(async () => {
+    try {
+      const data = await apiGetItems();
+      const mapped: Item[] = data.map((it: any) => ({
+        id: it.id,
+        title: it.itemtitle,
+        description: it.description,
+        category: it.category,
+        location: it.location,
+        date: it.date,
+        contact: it.contact,
+        image: it.imageurl,
+        // Use type if available, otherwise fallback to status
+        type: (it.type || it.status) as 'lost' | 'found',
+        status: it.status === 'completed' ? 'completed' : (it.status === 'accepted' || it.status === 'in_process' ? 'accepted' : 'pending'),
+        userId: 'db',
+        userName: it.reportedby,
+      }));
+      setItems(mapped); // Replace items instead of appending
+    } catch {
+      // ignore load errors for now
+    }
+  }, []);
+
+  // Search items by status and query
+  const searchItems = React.useCallback(async (status?: 'lost' | 'found', searchQuery?: string) => {
+    try {
+      const data = await apiGetItems(status, searchQuery);
+      const mapped: Item[] = data.map((it: any) => ({
+        id: it.id,
+        title: it.itemtitle,
+        description: it.description,
+        category: it.category,
+        location: it.location,
+        date: it.date,
+        contact: it.contact,
+        image: it.imageurl,
+        // Use type if available, otherwise fallback to status (and handle legacy logic)
+        type: (it.type || it.status) as 'lost' | 'found',
+        status: it.status === 'completed' ? 'completed' : (it.status === 'accepted' || it.status === 'in_process' ? 'accepted' : 'pending'),
+        userId: 'db',
+        userName: it.reportedby,
+      }));
+      setItems(mapped);
+    } catch (e) {
+      console.error("Search failed:", e);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadItems();
+  }, [loadItems]);
+
+  // Connect socket when user logs in
+  React.useEffect(() => {
+    if (isLoggedIn && user) {
+      socketService.connect(user.email);
+      loadNotifications();
+      loadConversations();
+    } else {
+      socketService.disconnect();
+    }
+  }, [isLoggedIn, user]);
+
+  // Load notifications
+  const loadNotifications = React.useCallback(async () => {
+    if (!token) return;
+    try {
+      const data = await apiGetNotifications(token);
+      setNotifications(data);
+    } catch (err) {
+      console.error('Failed to load notifications:', err);
+    }
+  }, [token]);
+
+  // Mark notification as read
+  const markNotificationRead = React.useCallback(async (notificationId: string) => {
+    if (!token) return;
+    try {
+      await apiMarkNotificationRead(notificationId, token);
+      setNotifications(prev =>
+        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+      );
+    } catch (err) {
+      console.error('Failed to mark notification as read:', err);
+    }
+  }, [token]);
+
+  // Load conversations
+  const loadConversations = React.useCallback(async () => {
+    if (!token) return;
+    try {
+      const data = await apiGetConversations(token);
+      setConversations(data);
+    } catch (err) {
+      console.error('Failed to load conversations:', err);
+    }
+  }, [token]);
+
+  // Mark claim as done
+  const markClaimDone = React.useCallback(async (claimId: string) => {
+    if (!token) return;
+    try {
+      await apiMarkClaimDone(claimId, token);
+      await loadItems();
+      await loadNotifications();
+    } catch (err) {
+      console.error('Failed to mark claim as done:', err);
+      throw err;
+    }
+  }, [token, loadItems, loadNotifications]);
 
   const logout = () => {
+    socketService.disconnect();
     setUser(null);
     setIsLoggedIn(false);
+    setToken(null);
+    localStorage.removeItem('auth_token');
   };
 
-  const addItem = (item: Omit<Item, 'id' | 'status' | 'userId' | 'userName'>) => {
+  const reportItem = async (item: {
+    title: string;
+    description: string;
+    category: string;
+    location: string;
+    date: string;
+    contact: string;
+    image: string;
+    type: 'lost' | 'found';
+  }) => {
+    if (!token) {
+      throw new Error('Please log in to report an item.');
+    }
+
+    const payload = {
+      itemtitle: item.title,
+      location: item.location,
+      date: item.date,
+      contact: item.contact,
+      category: item.category,
+      description: item.description,
+      imageurl: item.image,
+    };
+
+    const created = await apiCreateItem(payload, item.type, token);
+
     const newItem: Item = {
-      ...item,
-      id: Date.now().toString(),
+      id: created.id,
+      title: created.itemtitle,
+      description: created.description,
+      category: created.category,
+      location: created.location,
+      date: created.date,
+      contact: created.contact,
+      image: created.imageurl,
+      type: created.status,
       status: 'pending',
       userId: user?.id || '1',
       userName: user?.name || 'Anonymous'
     };
+
     setItems(prev => [newItem, ...prev]);
   };
 
-  const submitClaim = (claim: Omit<ClaimRequest, 'id' | 'status' | 'createdAt'>) => {
-    const newClaim: ClaimRequest = {
-      ...claim,
-      id: Date.now().toString(),
-      status: 'pending',
-      createdAt: new Date().toISOString()
-    };
-    setClaimRequests(prev => [...prev, newClaim]);
+  const submitClaim = async (claim: Omit<ClaimRequest, 'id' | 'status' | 'createdAt'>) => {
+    if (!token) {
+      throw new Error('Please login to submit a claim');
+    }
+
+    try {
+      // Handle proofImage - if it's a data URL, we need to convert it to a File and upload
+      let proofImageUrl = claim.proofImage;
+      if (claim.proofImage && claim.proofImage.startsWith('data:image')) {
+        // Convert data URL to File and upload
+        try {
+          const response = await fetch(claim.proofImage);
+          const blob = await response.blob();
+          const file = new File([blob], 'proof.jpg', { type: blob.type });
+          const result = await apiUploadImage(file);
+          proofImageUrl = result.url;
+        } catch (err: any) {
+          console.error('Failed to upload proof image:', err);
+          const errorMsg = err?.message || 'Failed to upload image';
+          throw new Error(`Image upload failed: ${errorMsg}`);
+        }
+      }
+
+      const result = await apiCreateClaim(
+        {
+          itemId: claim.itemId,
+          itemTitle: claim.itemTitle,
+          claimerName: claim.claimerName,
+          claimerEmail: claim.claimerEmail,
+          claimerPhone: claim.claimerPhone || '',
+          proofImage: proofImageUrl,
+          description: (claim as any).description || '',
+        },
+        token
+      );
+
+      const newClaim: ClaimRequest = {
+        id: result.id,
+        itemId: result.itemId,
+        itemTitle: result.itemTitle,
+        claimerName: result.claimerName,
+        claimerEmail: result.claimerEmail,
+        claimerPhone: result.claimerPhone || '',
+        proofImage: result.proofImage,
+        status: result.status as 'pending' | 'accepted' | 'rejected',
+        createdAt: typeof result.createdAt === 'string' ? result.createdAt : new Date(result.createdAt).toISOString(),
+      };
+      setClaimRequests(prev => [newClaim, ...prev]);
+    } catch (err: any) {
+      // Extract error message properly
+      let errorMessage = 'Failed to submit claim';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      } else if (err?.message) {
+        errorMessage = err.message;
+      } else if (err?.detail) {
+        errorMessage = err.detail;
+      }
+      throw new Error(errorMessage);
+    }
   };
 
-  const acceptClaim = (claimId: string) => {
-    setClaimRequests(prev => prev.map(c => 
+  const acceptClaim = async (claimId: string) => {
+    if (!token) {
+      throw new Error('Please login to accept a claim');
+    }
+
+    await apiAcceptClaim(claimId, token);
+    setClaimRequests(prev => prev.map(c =>
       c.id === claimId ? { ...c, status: 'accepted' as const } : c
     ));
   };
 
-  const rejectClaim = (claimId: string) => {
-    setClaimRequests(prev => prev.map(c => 
+  const rejectClaim = async (claimId: string) => {
+    if (!token) {
+      throw new Error('Please login to reject a claim');
+    }
+
+    await apiRejectClaim(claimId, token);
+    setClaimRequests(prev => prev.map(c =>
       c.id === claimId ? { ...c, status: 'rejected' as const } : c
     ));
   };
@@ -249,20 +451,29 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   return (
     <AppContext.Provider value={{
       isLoggedIn,
+      token,
       user,
       items,
       claimRequests,
+      notifications,
+      conversations,
       chats,
       messages,
       login,
       signup,
       logout,
-      addItem,
+      reportItem,
       submitClaim,
       acceptClaim,
       rejectClaim,
+      markClaimDone,
       sendMessage,
-      updateUser
+      updateUser,
+      searchItems,
+      loadItems,
+      loadNotifications,
+      markNotificationRead,
+      loadConversations
     }}>
       {children}
     </AppContext.Provider>

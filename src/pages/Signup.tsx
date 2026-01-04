@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/contexts/AppContext';
 import { FloatingIcons } from '@/components/FloatingIcons';
+import { toast } from '@/hooks/use-toast';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -14,10 +14,23 @@ const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    signup(name, email, password);
-    navigate('/home');
+    try {
+      await signup(name, email, password);
+      toast({
+        title: 'Account created',
+        description: 'You are now signed in.',
+        variant: 'default'
+      });
+      navigate('/home');
+    } catch (err: any) {
+      toast({
+        title: 'Signup failed',
+        description: err?.message || 'Please try again',
+        variant: 'destructive'
+      });
+    }
   };
 
   return (
@@ -30,11 +43,8 @@ const Signup = () => {
 
       <FloatingIcons />
 
-      <motion.div
+      <div
         className="relative z-10 w-full max-w-md"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
       >
         <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors">
           <ArrowLeft size={20} />
@@ -42,25 +52,17 @@ const Signup = () => {
         </Link>
 
         <div className="glass-card p-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
+          <div>
             <h1 className="font-display text-3xl font-bold gradient-text mb-2">
               Create Account
             </h1>
             <p className="text-muted-foreground mb-8">
               Join our community of item finders
             </p>
-          </motion.div>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-            >
+            <div>
               <label className="block text-sm font-medium mb-2">Full Name</label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
@@ -73,13 +75,9 @@ const Signup = () => {
                   required
                 />
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-            >
+            <div>
               <label className="block text-sm font-medium mb-2">Email</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
@@ -92,13 +90,9 @@ const Signup = () => {
                   required
                 />
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-            >
+            <div>
               <label className="block text-sm font-medium mb-2">Password</label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
@@ -111,32 +105,25 @@ const Signup = () => {
                   required
                 />
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
+            <div>
               <Button type="submit" variant="hero" size="lg" className="w-full">
                 Create Account
               </Button>
-            </motion.div>
+            </div>
           </form>
 
-          <motion.p
+          <p
             className="text-center text-muted-foreground mt-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
           >
             Already have an account?{' '}
             <Link to="/login" className="text-primary hover:underline">
               Login
             </Link>
-          </motion.p>
+          </p>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

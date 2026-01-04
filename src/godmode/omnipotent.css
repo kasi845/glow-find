@@ -1,0 +1,28 @@
+.omni {
+    height: 100vh;
+    background: black;
+    overflow: hidden;
+    font-family: Orbitron, monospace;
+}
+
+.overlay {
+    position: absolute;
+    top: 40%;
+    width: 100%;
+    text-align: center;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.overlay h1 {
+    color: white;
+    font-size: 3rem;
+    margin: 0;
+}
+
+.overlay h2 {
+    color: cyan;
+    font-size: 4.5rem;
+    text-shadow: 0 0 30px cyan;
+    margin: 0;
+}

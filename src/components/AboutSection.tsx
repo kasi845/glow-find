@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { Search, Package, Handshake, Shield, MessageCircle, CheckCircle } from 'lucide-react';
 
 const aboutCards = [
@@ -46,32 +45,13 @@ const aboutCards = [
   }
 ];
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
-};
-
 export const AboutSection = () => {
   return (
     <section
       id="about"
       className="relative z-10 py-20 px-6 max-w-6xl mx-auto"
     >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
+      <div
         className="text-center mb-12"
       >
         <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
@@ -80,38 +60,26 @@ export const AboutSection = () => {
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
           A platform built on trust, transparency, and the mission to reunite people with their belongings.
         </p>
-      </motion.div>
+      </div>
 
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
+      <div
         className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
       >
-        {aboutCards.map((card, index) => (
-          <motion.div
+        {aboutCards.map((card) => (
+          <div
             key={card.title}
-            variants={cardVariants}
-            className="glass-card p-6 relative overflow-hidden group"
-            whileHover={{ 
-              scale: 1.02, 
-              y: -5,
-              transition: { duration: 0.2 }
-            }}
+            className="glass-card p-6 relative overflow-hidden group hover:scale-[1.02] hover:-translate-y-1 transition-all duration-200"
           >
             {/* Background glow */}
             <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br ${card.gradient} opacity-50 blur-2xl group-hover:opacity-80 transition-opacity`} />
-            
+
             <div className="relative z-10">
-              <motion.div 
-                className={`w-12 h-12 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center mb-4`}
-                whileHover={{ rotate: [0, -5, 5, 0] }}
-                transition={{ duration: 0.4 }}
+              <div
+                className={`w-12 h-12 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center mb-4 transition-transform duration-500 group-hover:rotate-6`}
               >
                 <card.icon className={card.color} size={24} />
-              </motion.div>
-              
+              </div>
+
               <h3 className={`text-xl font-semibold ${card.color} mb-3`}>
                 {card.title}
               </h3>
@@ -119,29 +87,23 @@ export const AboutSection = () => {
                 {card.description}
               </p>
             </div>
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
+      </div>
 
       {/* Emotional statement */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.3 }}
+      <div
         className="mt-16 text-center"
       >
         <p className="text-xl md:text-2xl text-muted-foreground italic">
           "Every item has a story. Every finder brings someone hope."
         </p>
-        <motion.span
-          className="inline-block mt-4 text-3xl"
-          animate={{ scale: [1, 1.1, 1] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+        <span
+          className="inline-block mt-4 text-3xl animate-pulse"
         >
           ❤️
-        </motion.span>
-      </motion.div>
+        </span>
+      </div>
     </section>
   );
 };

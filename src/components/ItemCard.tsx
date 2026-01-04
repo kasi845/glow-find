@@ -1,5 +1,4 @@
-import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
-import { MapPin, Calendar, User, Handshake, CheckCircle } from 'lucide-react';
+import { MapPin, Calendar, User, Handshake, CheckCircle, Ban } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Item } from '@/contexts/AppContext';
 
@@ -9,66 +8,44 @@ interface ItemCardProps {
   index: number;
   buttonText?: string;
   buttonIcon?: 'claim' | 'found';
+  currentUserName?: string;
 }
 
-export const ItemCard: React.FC<ItemCardProps> = ({ 
-  item, 
-  onClaim, 
+export const ItemCard: React.FC<ItemCardProps> = ({
+  item,
+  onClaim,
   index,
   buttonText = 'Claim Item',
-  buttonIcon = 'claim'
+  buttonIcon = 'claim',
+  currentUserName
 }) => {
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-
-  const rotateX = useSpring(useTransform(y, [-100, 100], [8, -8]), { stiffness: 300, damping: 30 });
-  const rotateY = useSpring(useTransform(x, [-100, 100], [-8, 8]), { stiffness: 300, damping: 30 });
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    x.set(e.clientX - centerX);
-    y.set(e.clientY - centerY);
-  };
-
-  const handleMouseLeave = () => {
-    x.set(0);
-    y.set(0);
-  };
+  // Check if this is the user's own item
+  const isOwnItem = currentUserName && item.userName === currentUserName;
 
   return (
-    <motion.div
-      className="glass-card overflow-hidden group cursor-pointer flex flex-col h-full"
-      style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      whileHover={{ y: -5, scale: 1.02 }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+    <div
+      className="glass-card overflow-hidden group cursor-pointer flex flex-col h-full hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 transform perspective-1000"
     >
       {/* Fixed height image section */}
-      <div className="relative h-44 w-full overflow-hidden flex-shrink-0" style={{ transform: 'translateZ(20px)' }}>
-        <img 
-          src={item.image} 
+      <div className="relative h-44 w-full overflow-hidden flex-shrink-0">
+        <img
+          src={item.image}
           alt={item.title}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
         <div className="absolute top-3 right-3">
-          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-            item.type === 'lost' 
-              ? 'bg-destructive/80 text-destructive-foreground' 
-              : 'bg-green-500/80 text-primary-foreground'
-          }`}>
+          <span className={`px-3 py-1 rounded-full text-xs font-medium ${item.type === 'lost'
+            ? 'bg-destructive/80 text-destructive-foreground'
+            : 'bg-green-500/80 text-primary-foreground'
+            }`}>
             {item.type === 'lost' ? 'Lost' : 'Found'}
           </span>
         </div>
       </div>
 
       {/* Content section with flex-grow */}
-      <div className="p-5 flex flex-col flex-grow" style={{ transform: 'translateZ(30px)' }}>
+      <div className="p-5 flex flex-col flex-grow">
         <h3 className="font-display font-semibold text-lg text-foreground mb-2 line-clamp-1">
           {item.title}
         </h3>
@@ -94,19 +71,33 @@ export const ItemCard: React.FC<ItemCardProps> = ({
         {/* Spacer to push button to bottom */}
         <div className="flex-grow" />
 
-        <Button 
-          onClick={onClaim}
-          variant="gradient"
-          className="w-full shimmer-btn flex items-center justify-center gap-2 mt-auto"
+        <Button
+          onClick={isOwnItem ? undefined : onClaim}
+          variant={isOwnItem ? "outline" : "gradient"}
+          disabled={isOwnItem}
+          className={`w-full flex items-center justify-center gap-2 mt-auto ${isOwnItem
+            ? 'cursor-not-allowed opacity-50 hover:opacity-50'
+            : 'shimmer-btn'
+            }`}
+          title={isOwnItem ? "You cannot claim your own item" : buttonText}
         >
-          {buttonIcon === 'found' ? (
-            <Handshake size={18} />
+          {isOwnItem ? (
+            <>
+              <Ban size={18} />
+              Your Item
+            </>
           ) : (
-            <CheckCircle size={18} />
+            <>
+              {buttonIcon === 'found' ? (
+                <Handshake size={18} />
+              ) : (
+                <CheckCircle size={18} />
+              )}
+              {buttonText}
+            </>
           )}
-          {buttonText}
         </Button>
       </div>
-    </motion.div>
+    </div>
   );
 };
