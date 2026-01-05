@@ -138,7 +138,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     email: data.email,
     itemsReported: { inProcess: 0, completed: 0 },
     itemsFound: { inProcess: 0, completed: 0 },
-    avatar: data.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200',
+    avatar: (data.avatar && data.avatar.trim() !== '') ? data.avatar : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200',
     isAdmin: data.isAdmin
   });
 

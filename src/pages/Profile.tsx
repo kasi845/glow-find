@@ -35,7 +35,7 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
     name: user?.name || '',
-    avatar: user?.avatar || ''
+    avatar: user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200'
   });
   const [statsData, setStatsData] = useState<UserStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
@@ -231,7 +231,7 @@ const Profile = () => {
                   onClick={() => isEditing && fileInputRef.current?.click()}
                 >
                   <img
-                    src={isEditing ? editData.avatar : user?.avatar}
+                    src={isEditing ? (editData.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200') : (user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200')}
                     alt={user?.name}
                     className={`w-32 h-32 rounded-full object-cover border-4 border-primary/30 transition-all ${isEditing ? 'group-hover:border-primary/60' : ''}`}
                   />
