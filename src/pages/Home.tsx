@@ -8,6 +8,7 @@ import { FilterTabs } from '@/components/FilterTabs';
 import { AlertBanner } from '@/components/AlertBanner';
 import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
+import { ChatBot } from '@/components/ChatBot';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -166,6 +167,9 @@ const Home = () => {
             </div>
           </div>
         </main>
+
+        {/* AI ChatBot - Only on Home Page */}
+        <ChatBot />
       </div>
     </PageTransition>
   );
