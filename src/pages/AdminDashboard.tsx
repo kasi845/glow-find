@@ -7,11 +7,12 @@ import {
     apiBlockUser,
     apiUnblockUser,
     apiGetAdminReports,
-    apiDeleteAdminItem
+    apiDeleteAdminItem,
+    apiGetAdminFlags
 } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/Navbar';
-import { Trash, Shield, Ban, CheckCircle, MapPin, Calendar } from 'lucide-react';
+import { Trash, Shield, Ban, CheckCircle, MapPin, Calendar, AlertTriangle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +22,7 @@ const AdminDashboard = () => {
     const navigate = useNavigate();
     const [users, setUsers] = useState<any[]>([]);
     const [items, setItems] = useState<any[]>([]);
+    const [flags, setFlags] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -36,12 +38,14 @@ const AdminDashboard = () => {
     const loadData = async () => {
         if (!token) return;
         try {
-            const [usersData, itemsData] = await Promise.all([
+            const [usersData, itemsData, flagsData] = await Promise.all([
                 apiGetAdminUsers(token),
-                apiGetAdminReports(token)
+                apiGetAdminReports(token),
+                apiGetAdminFlags(token)
             ]);
             setUsers(usersData);
             setItems(itemsData);
+            setFlags(flagsData);
         } catch (e) {
             console.error(e);
             toast({ title: "Failed to load data", variant: "destructive" });
@@ -135,10 +139,11 @@ const AdminDashboard = () => {
                 </div>
 
                 <Tabs defaultValue="users" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 mb-8 bg-muted/20">
+                    <TabsList className="grid w-full grid-cols-4 mb-8 bg-muted/20">
                         <TabsTrigger value="users">Manage Users</TabsTrigger>
-                        <TabsTrigger value="lost">Lost Reports ({lostItems.length})</TabsTrigger>
-                        <TabsTrigger value="found">Found Reports ({foundItems.length})</TabsTrigger>
+                        <TabsTrigger value="lost">Lost ({lostItems.length})</TabsTrigger>
+                        <TabsTrigger value="found">Found ({foundItems.length})</TabsTrigger>
+                        <TabsTrigger value="flags">Flags ({flags.length})</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="users">
@@ -208,6 +213,39 @@ const AdminDashboard = () => {
 
                     <TabsContent value="found">
                         <ItemTable items={foundItems} onDelete={handleDeleteItem} />
+                    </TabsContent>
+
+                    <TabsContent value="flags">
+                        <div className="glass-card p-6 border border-white/10 rounded-xl">
+                            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                                <AlertTriangle className="text-red-500" /> User Flags / Reports
+                            </h2>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead className="text-muted-foreground border-b border-white/10">
+                                        <tr>
+                                            <th className="p-3">Item Title</th>
+                                            <th className="p-3">Reason</th>
+                                            <th className="p-3">Description</th>
+                                            <th className="p-3">Reporter</th>
+                                            <th className="p-3">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {flags.map(f => (
+                                            <tr key={f.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                                <td className="p-3 font-medium text-white">{f.itemTitle}</td>
+                                                <td className="p-3"><Badge variant="destructive">{f.reason}</Badge></td>
+                                                <td className="p-3 text-sm text-muted-foreground max-w-xs truncate" title={f.description}>{f.description}</td>
+                                                <td className="p-3 text-sm text-white">{f.reporterEmail}</td>
+                                                <td className="p-3 text-sm text-muted-foreground">{new Date(f.createdAt).toLocaleDateString()}</td>
+                                            </tr>
+                                        ))}
+                                        {flags.length === 0 && <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No flags found.</td></tr>}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </TabsContent>
                 </Tabs>
             </div>

@@ -118,16 +118,52 @@ export async function apiUploadImage(file: File) {
   return handleResponse(res);
 }
 
-export async function apiGetItems(status?: "lost" | "found", search?: string) {
+export async function apiGetItems(type?: string, search?: string, includeCompleted: boolean = false) {
   const params = new URLSearchParams();
-  if (status) params.append("status", status);
+  if (type) params.append("type", type);
   if (search) params.append("search", search);
+  if (includeCompleted) params.append("include_completed", "true");
 
   const url = params.toString()
     ? `${API_BASE_URL}/items?${params.toString()}`
     : `${API_BASE_URL}/items`;
 
   const res = await fetch(url);
+  return handleResponse(res);
+}
+
+export async function apiReportItem(payload: { itemId: string; reason: string; description: string }, token: string) {
+  const res = await fetch(`${API_BASE_URL}/reports`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(res);
+}
+
+export async function apiDeleteItem(token: string, itemId: string) {
+  const res = await fetch(`${API_BASE_URL}/items/${itemId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.detail || "Failed to delete item");
+  }
+  return true;
+}
+
+export async function apiGetAdminFlags(token: string) {
+  const res = await fetch(`${API_BASE_URL}/admin/flags`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return handleResponse(res);
 }
 

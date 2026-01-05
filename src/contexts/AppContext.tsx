@@ -133,12 +133,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [chats, setChats] = useState<Chat[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
 
-  const toUser = (data: { name: string; email: string; createdAt?: string; isAdmin?: boolean }): User => ({
+  const toUser = (data: { name: string; email: string; avatar?: string; createdAt?: string; isAdmin?: boolean }): User => ({
     name: data.name,
     email: data.email,
     itemsReported: { inProcess: 0, completed: 0 },
     itemsFound: { inProcess: 0, completed: 0 },
-    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200',
+    avatar: data.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200',
     isAdmin: data.isAdmin
   });
 
@@ -183,7 +183,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Load items from backend on first mount
   const loadItems = React.useCallback(async () => {
     try {
-      const data = await apiGetItems();
+      const data = await apiGetItems(undefined, undefined, true);
       const mapped: Item[] = data.map((it: any) => ({
         id: it.id,
         title: it.itemtitle,
@@ -208,7 +208,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Search items by status and query
   const searchItems = React.useCallback(async (status?: 'lost' | 'found', searchQuery?: string) => {
     try {
-      const data = await apiGetItems(status, searchQuery);
+      const data = await apiGetItems(status, searchQuery, true);
       const mapped: Item[] = data.map((it: any) => ({
         id: it.id,
         title: it.itemtitle,
@@ -234,16 +234,27 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     loadItems();
   }, [loadItems]);
 
-  // Connect socket when user logs in
-  React.useEffect(() => {
-    if (isLoggedIn && user) {
-      socketService.connect(user.email);
-      loadNotifications();
-      loadConversations();
-    } else {
-      socketService.disconnect();
+  // Load conversations
+  const loadConversations = React.useCallback(async () => {
+    if (!token) return;
+    try {
+      const data = await apiGetConversations(token);
+      setConversations(data);
+    } catch (err) {
+      console.error('Failed to load conversations:', err);
     }
-  }, [isLoggedIn, user]);
+  }, [token]);
+
+  // Load claims
+  const loadClaims = React.useCallback(async () => {
+    if (!token) return;
+    try {
+      const data = await apiGetClaims(token);
+      setClaimRequests(data);
+    } catch (err) {
+      console.error('Failed to load claims:', err);
+    }
+  }, [token]);
 
   // Load notifications
   const loadNotifications = React.useCallback(async () => {
@@ -269,16 +280,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, [token]);
 
-  // Load conversations
-  const loadConversations = React.useCallback(async () => {
-    if (!token) return;
-    try {
-      const data = await apiGetConversations(token);
-      setConversations(data);
-    } catch (err) {
-      console.error('Failed to load conversations:', err);
+  // Connect socket when user logs in
+  React.useEffect(() => {
+    if (isLoggedIn && user) {
+      socketService.connect(user.email);
+      loadNotifications();
+      loadConversations();
+      loadClaims();
+    } else {
+      socketService.disconnect();
     }
-  }, [token]);
+  }, [isLoggedIn, user, loadNotifications, loadConversations, loadClaims]);
 
   // Mark claim as done
   const markClaimDone = React.useCallback(async (claimId: string) => {
@@ -354,11 +366,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       // Handle proofImage - if it's a data URL, we need to convert it to a File and upload
       let proofImageUrl = claim.proofImage;
       if (claim.proofImage && claim.proofImage.startsWith('data:image')) {
-        // Convert data URL to File and upload
         try {
-          const response = await fetch(claim.proofImage);
-          const blob = await response.blob();
-          const file = new File([blob], 'proof.jpg', { type: blob.type });
+          // Manual conversion of Data URL to File
+          const arr = claim.proofImage.split(',');
+          const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+          const bstr = atob(arr[1]);
+          let n = bstr.length;
+          const u8arr = new Uint8Array(n);
+          while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+          }
+          const file = new File([u8arr], 'proof.jpg', { type: mime });
+
           const result = await apiUploadImage(file);
           proofImageUrl = result.url;
         } catch (err: any) {

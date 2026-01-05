@@ -5,18 +5,21 @@ import { FloatingIcons } from '@/components/FloatingIcons';
 import { PageTransition } from '@/components/PageTransition';
 import { ItemCard } from '@/components/ItemCard';
 import { ClaimModal } from '@/components/ClaimModal';
+import { ReportItemModal } from '@/components/ReportItemModal';
 import { Input } from '@/components/ui/input';
 import { useApp, Item } from '@/contexts/AppContext';
 
 const FoundItems = () => {
-  const { items, searchItems, user } = useApp();
+  const { items, searchItems, user, claimRequests } = useApp();
   const [search, setSearch] = useState('');
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [reportItem, setReportItem] = useState<Item | null>(null);
 
+  // Debounce search to avoid too many API calls
   // Debounce search to avoid too many API calls
   useEffect(() => {
     const timer = setTimeout(() => {
-      searchItems('found', search || undefined);
+      searchItems(undefined, search || undefined);
     }, 300);
 
     return () => clearTimeout(timer);
@@ -29,8 +32,19 @@ const FoundItems = () => {
   // Filter and sort found items
   // Priority: Items matching user's lost reports first, then user's own items at bottom, then others
   const foundItems = items
-    .filter(i => i.type === 'found')
+    .filter(i => i.type === 'found' || i.status === 'completed')
     .sort((a, b) => {
+      // Priority 0: Active items first, Completed items last
+      const aIsCompleted = a.status === 'completed';
+      const bIsCompleted = b.status === 'completed';
+      if (aIsCompleted && !bIsCompleted) return 1;
+      if (!aIsCompleted && bIsCompleted) return -1;
+
+      // If both are completed, sort by date (newest first)
+      if (aIsCompleted && bIsCompleted) {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      }
+
       const aIsUserItem = a.userName === user?.name;
       const bIsUserItem = b.userName === user?.name;
       const aMatchesUserLost = userLostItemTitles.some(title =>
@@ -85,15 +99,38 @@ const FoundItems = () => {
 
             {/* Items Grid */}
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
-              {foundItems.map((item, index) => (
-                <ItemCard
-                  key={item.id}
-                  item={item}
-                  index={index}
-                  onClaim={() => setSelectedItem(item)}
-                  currentUserName={user?.name}
-                />
-              ))}
+              {foundItems.map((item, index) => {
+                const myClaim = claimRequests.find(c => c.itemId === item.id && c.claimerEmail === user?.email);
+                const isCompleted = item.status === 'completed';
+
+                let buttonText = "Claim Item";
+                let onClaim = () => setSelectedItem(item);
+
+                if (isCompleted) {
+                  buttonText = "Report Fake";
+                  onClaim = () => setReportItem(item);
+                } else if (myClaim) {
+                  onClaim = () => { };
+                  if (myClaim.status === 'pending') {
+                    buttonText = "Claim Pending";
+                  } else if (myClaim.status === 'accepted') {
+                    buttonText = "Claim Accepted";
+                  } else if (myClaim.status === 'rejected') {
+                    buttonText = "Claim Rejected";
+                  }
+                }
+
+                return (
+                  <ItemCard
+                    key={item.id}
+                    item={item}
+                    index={index}
+                    onClaim={onClaim}
+                    buttonText={buttonText}
+                    currentUserName={user?.name}
+                  />
+                );
+              })}
             </div>
 
             {foundItems.length === 0 && (
@@ -110,6 +147,12 @@ const FoundItems = () => {
           item={selectedItem}
           isOpen={!!selectedItem}
           onClose={() => setSelectedItem(null)}
+        />
+
+        <ReportItemModal
+          item={reportItem}
+          isOpen={!!reportItem}
+          onClose={() => setReportItem(null)}
         />
       </div>
     </PageTransition>

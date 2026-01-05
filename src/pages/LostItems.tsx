@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { useApp, Item } from '@/contexts/AppContext';
 
 const LostItems = () => {
-  const { items, searchItems, user } = useApp();
+  const { items, searchItems, user, claimRequests } = useApp();
   const [search, setSearch] = useState('');
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
@@ -27,9 +27,8 @@ const LostItems = () => {
   const userFoundItemTitles = userFoundItems.map(i => i.title.toLowerCase());
 
   // Filter and sort lost items
-  // Priority: Items matching user's found reports first, then user's own items at bottom, then others
   const lostItems = items
-    .filter(i => i.type === 'lost')
+    .filter(i => i.type === 'lost' && i.status !== 'completed')
     .sort((a, b) => {
       const aIsUserItem = a.userName === user?.name;
       const bIsUserItem = b.userName === user?.name;
@@ -40,15 +39,14 @@ const LostItems = () => {
         b.title.toLowerCase().includes(title) || title.includes(b.title.toLowerCase())
       );
 
-      // Priority 1: Items matching user's found reports (show at top)
+      // Priority 1: Matching
       if (aMatchesUserFound && !bMatchesUserFound) return -1;
       if (!aMatchesUserFound && bMatchesUserFound) return 1;
 
-      // Priority 2: User's own items go to bottom (they can't claim their own)
+      // Priority 2: Own items
       if (aIsUserItem && !bIsUserItem) return 1;
       if (!aIsUserItem && bIsUserItem) return -1;
 
-      // Priority 3: Among others, show newest first
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
 
@@ -85,24 +83,41 @@ const LostItems = () => {
 
             {/* Items Grid */}
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
-              {lostItems.map((item, index) => (
-                <ItemCard
-                  key={item.id}
-                  item={item}
-                  index={index}
-                  onClaim={() => setSelectedItem(item)}
-                  buttonText="I Found This"
-                  buttonIcon="found"
-                  currentUserName={user?.name}
-                />
-              ))}
+              {lostItems.map((item, index) => {
+                const myClaim = claimRequests.find(c => c.itemId === item.id && c.claimerEmail === user?.email);
+
+                let buttonText = "I Found This";
+                let onClaim = () => setSelectedItem(item);
+
+                if (myClaim) {
+                  onClaim = () => { };
+                  if (myClaim.status === 'pending') {
+                    buttonText = "Claim Pending";
+                  } else if (myClaim.status === 'accepted') {
+                    buttonText = "Claim Accepted";
+                  } else if (myClaim.status === 'rejected') {
+                    buttonText = "Claim Rejected";
+                  }
+                }
+
+                return (
+                  <ItemCard
+                    key={item.id}
+                    item={item}
+                    index={index}
+                    onClaim={onClaim}
+                    buttonText={buttonText}
+                    currentUserName={user?.name}
+                  />
+                );
+              })}
             </div>
 
             {lostItems.length === 0 && (
               <div
                 className="text-center py-20"
               >
-                <p className="text-muted-foreground text-lg">No lost items found</p>
+                <p className="text-muted-foreground text-lg">No lost items yet</p>
               </div>
             )}
           </div>

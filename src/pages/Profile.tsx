@@ -1,14 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
-import { User, Mail, Edit, LogOut, Package, Search, Check, Clock, Camera } from 'lucide-react';
+import { User, Mail, Edit, LogOut, Package, Search, Check, Clock, Camera, Trash } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { FloatingIcons } from '@/components/FloatingIcons';
 import { PageTransition } from '@/components/PageTransition';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useApp } from '@/contexts/AppContext';
+import { useApp, Item } from '@/contexts/AppContext';
 import { toast } from '@/hooks/use-toast';
-import { apiGetUserStats, apiUpdateUser, apiUploadImage } from '@/lib/api';
+import { apiGetUserStats, apiUpdateUser, apiUploadImage, apiGetItems, apiDeleteItem } from '@/lib/api';
+import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface UserStats {
   items_reported_total: number;
@@ -29,6 +40,61 @@ const Profile = () => {
   const [statsData, setStatsData] = useState<UserStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [myItems, setMyItems] = useState<Item[]>([]);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+
+  const fetchMyItems = async () => {
+    if (!token || !user) return;
+    try {
+      const allItems = await apiGetItems(undefined, undefined, true);
+      // Backend returns raw objects. key: reportedby
+      const mineRaw = allItems.filter((i: any) => i.reportedby === user.name);
+
+      const mine = mineRaw.map((i: any) => ({
+        id: i.id,
+        title: i.itemtitle,
+        description: i.description,
+        category: i.category,
+        location: i.location,
+        date: i.date,
+        contact: i.contact,
+        image: i.imageurl,
+        type: i.type,
+        status: i.status,
+        userId: i.reportedby,
+        userName: i.reportedby
+      }));
+      setMyItems(mine);
+    } catch (error) {
+      console.error("Failed to fetch my items", error);
+    }
+  };
+
+  const handleDeleteItem = (itemId: string) => {
+    setItemToDelete(itemId);
+  };
+
+  const confirmDelete = async () => {
+    if (!token || !itemToDelete) return;
+
+    try {
+      await apiDeleteItem(token, itemToDelete);
+      setMyItems(prev => prev.filter(i => i.id !== itemToDelete));
+      toast({
+        title: "Item Deleted",
+        description: "The item has been removed."
+      });
+      fetchStats();
+    } catch (error: any) {
+      toast({
+        title: "Deletion Failed",
+        description: error.message || "Could not delete item.",
+        variant: "destructive"
+      });
+    } finally {
+      setItemToDelete(null);
+    }
+  };
 
   const fetchStats = async () => {
     if (token) {
@@ -53,7 +119,8 @@ const Profile = () => {
 
   useEffect(() => {
     fetchStats();
-  }, [token]);
+    fetchMyItems();
+  }, [token, user?.name]);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -277,6 +344,48 @@ const Profile = () => {
               ))}
             </div>
 
+            {/* My Reports */}
+            {myItems.length > 0 && (
+              <div className="mb-8">
+                <h2 className="font-display text-2xl font-bold mb-4 gradient-text">My Reports</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {myItems.map(item => (
+                    <div key={item.id} className="glass-card p-4 relative group hover:scale-[1.02] transition-transform duration-300">
+                      <div className="aspect-w-4 aspect-h-3 mb-4 rounded-lg overflow-hidden bg-muted">
+                        <img
+                          src={item.image || "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400"}
+                          alt={item.title}
+                          className="w-full h-40 object-cover"
+                        />
+                      </div>
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-bold text-foreground truncate flex-1 pr-2">{item.title}</h3>
+                        <Badge variant={item.type === 'lost' ? 'destructive' : 'default'} className="uppercase text-[10px]">
+                          {item.type}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-4 line-clamp-2 min-h-[2.5em]">{item.description}</p>
+
+                      <div className="flex justify-between items-center text-xs text-muted-foreground mb-4">
+                        <span>{new Date(item.date).toLocaleDateString()}</span>
+                        <Badge variant="outline" className="text-xs">{item.status}</Badge>
+                      </div>
+
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                        onClick={() => handleDeleteItem(item.id)}
+                        title="Delete Item"
+                      >
+                        <Trash size={16} />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Logout Button */}
             <div>
               <div className="hover:scale-102 transition-transform">
@@ -293,6 +402,20 @@ const Profile = () => {
             </div>
           </div>
         </main>
+        <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
+          <AlertDialogContent className="glass-card border-white/10 text-foreground">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-white">Delete Item?</AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
+                Are you sure you want to delete this item? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setItemToDelete(null)} className="border-white/10 hover:bg-white/10 text-white">Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-red-500 hover:bg-red-600 text-white border-0">Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </PageTransition>
   );
